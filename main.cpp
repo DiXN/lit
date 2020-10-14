@@ -4,9 +4,7 @@
 int main(void) {
   string cmd("diff");
 
-  auto command = Command(cmd)
-                  .arg("file1")
-                  .arg("file2");
+  auto command = Command(cmd).arg("file1").arg("file2");
 
   command.printArgs();
 
