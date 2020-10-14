@@ -1,0 +1,8 @@
+BasedOnStyle: LLVM
+AccessModifierOffset: 0
+AlignEscapedNewlines: DontAlign
+IndentCaseLabels: true
+ColumnLimit: 120
+KeepEmptyLinesAtTheStartOfBlocks: false
+PointerAlignment: Left
+SpaceBeforeRangeBasedForLoopColon: false
