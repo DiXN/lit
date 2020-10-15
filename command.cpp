@@ -29,3 +29,4 @@ string Command::invoke() {
 
   return std::move(output.str());
 }
+
