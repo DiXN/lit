@@ -1,16 +1,27 @@
 #pragma once
 
+#include "repository.hpp"
 #include <arg.h>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 using namespace std;
+namespace fs = std::filesystem;
 
 class Init: public Arg {
   public:
   Init() {}
   void invoke() const override {
-    return;
+    const auto lit_path = fs::current_path() / ".lit";
+    const auto& repo = Repository::instance();
+
+    if (repo.exists())
+      cout << "repository is already initialized." << endl;
+    else {
+      repo.initialize();
+      cout << "repository is initialzed." << endl;
+    }
   }
 
   ostringstream info() const override {
@@ -19,8 +30,4 @@ class Init: public Arg {
     return os;
   }
 };
-
-std::ostream& operator<<(std::ostream &strm, const Init& init) {
-  return strm << "Init";
-}
 

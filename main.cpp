@@ -20,6 +20,7 @@ bool match_arg(const string& arg, map<string, unique_ptr<Arg>>& args, string cmd
     return false;
   }
 
+  args[arg]->invoke();
   return true;
 }
 
@@ -52,9 +53,9 @@ int main(int argc, char** argv) {
 
   auto command = Command(cmd).arg("file1").arg("file2");
 
-  command.printArgs();
+  //command.printArgs();
 
-  cout << "output for command \"diff\":\n" << command.invoke();
+  //cout << "output for command \"diff\":\n" << command.invoke();
   return 0;
 }
 
