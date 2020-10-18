@@ -4,9 +4,9 @@ class Singleton {
   Singleton() = default;
 
   public:
-  Singleton(const Singleton &) = default;
+  Singleton(const Singleton &) = delete;
 
-  Singleton &operator=(const Singleton &) = default;
+  Singleton &operator=(const Singleton &) = delete;
 
   static T &instance()
   {
