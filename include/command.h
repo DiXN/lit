@@ -13,5 +13,5 @@ class Command {
 
   private:
   vector<string> args;
-  const string& command;
+  const string command;
 };
