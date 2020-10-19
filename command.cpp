@@ -23,7 +23,9 @@ string Command::invoke() {
       std::accumulate(args.begin(), args.end(), command, [](const string& a, string b) { return a + " " + b; });
 
   ostringstream oss;
-  oss << "sh -c " << cmd << " 2>&1";
+  oss << "sh -c " << "\"" << cmd << "\"" << " 2>&1";
+
+  cout << oss.str() << endl;
 
   auto output = exec(std::move(oss.str().c_str())).output();
 
