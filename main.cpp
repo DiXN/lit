@@ -1,6 +1,8 @@
 #include "command.h"
 #include "arg.h"
 #include "init.hpp"
+#include "commit.hpp"
+
 #include <iostream>
 #include <memory>
 #include <map>
@@ -10,6 +12,7 @@
 map<string, unique_ptr<Arg>> init_arg_register() {
   map<string, unique_ptr<Arg>> args;
   args.emplace("init", make_unique<Init>());
+  args.emplace("commit", make_unique<Commit>());
   return args;
 }
 
@@ -28,7 +31,7 @@ void print_help(map<string, unique_ptr<Arg>>& args) {
   cout << "available commands in lit:" << endl;
 
   for (const auto& [name, arg]: args) {
-    cout << " " << name << ": " << arg->info().str() << endl;
+    cout << " " << name << ": " << arg->info().str();
   }
 }
 
@@ -49,13 +52,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  string cmd("diff");
-
-  auto command = Command(cmd).arg("file1").arg("file2");
-
-  //command.printArgs();
-
-  //cout << "output for command \"diff\":\n" << command.invoke();
   return 0;
 }
 
