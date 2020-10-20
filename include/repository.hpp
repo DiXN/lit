@@ -7,6 +7,7 @@
 #include <optional>
 #include <string>
 #include <algorithm>
+#include <tuple>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -68,15 +69,38 @@ class Repository: public Singleton<Repository> {
     return current_branch.string();
   }
 
-  optional<string> last_commit() const {
+  optional<tuple<string, string, string>> last_commit() const {
+    auto split = [](const string& line, char delim) {
+      array<string, 3> tokens;
+      stringstream line_stream(line);
+      string token;
+
+      for(int i = 0; getline(line_stream, token, delim); i++) {
+        //cout << token << endl;
+        tokens[i] = token;
+      }
+
+      return tokens;
+    };
+
     ifstream branch_file(lit_path / "branches" / current_branch());
+
     string commit;
-    while(branch_file >> commit);
+    string time;
+    string message;
+    string line;
+
+    while(getline(branch_file, line)) {
+      array<string, 3> tokens = split(line, '|');
+      commit = tokens[0];
+      time = tokens[1];
+      message = tokens[2];
+    }
 
     if (commit.empty()) {
       return nullopt;
     } else {
-      return optional<string>(commit);
+      return optional<tuple<string, string, string>>(make_tuple(commit, time, message));
     }
   }
 };
