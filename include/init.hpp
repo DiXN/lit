@@ -12,7 +12,12 @@ namespace fs = std::filesystem;
 class Init: public Arg {
   public:
   Init() {}
-  void invoke() const override {
+  bool invoke(const optional<string> arg) const override {
+    if (arg) {
+      cerr << "On command 'lit Init' no argument is allowed" << endl;
+      return false;
+    }
+
     const auto lit_path = fs::current_path() / ".lit";
     const auto& repo = Repository::instance();
 
@@ -22,6 +27,8 @@ class Init: public Arg {
       repo.initialize();
       cout << "repository is initialzed." << endl;
     }
+
+    return true;
   }
 
   ostringstream info() const override {
