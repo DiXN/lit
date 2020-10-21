@@ -11,6 +11,12 @@ Command& Command::arg(const string arg) {
   return *this;
 }
 
+
+Command& Command::arg(const fs::path& arg) {
+  args.push_back((arg.string()));
+  return *this;
+}
+
 void Command::printArgs() {
   std::cout << "arguments for command \"" << command << "\":" << std::endl;
 
@@ -46,6 +52,6 @@ tuple<string, int> Command::invoke() {
     throw runtime_error("pclose failure");
   }
 
-  return make_tuple(output.str(), exit_code);
+  return make_tuple(output.str(), WEXITSTATUS(exit_code));
 }
 

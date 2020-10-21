@@ -64,8 +64,7 @@ class Commit: public Arg {
 
     for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
       if (!repo.is_excluded(p)) {
-        string cmd("diff");
-        auto command = Command(cmd).arg("-u").arg("/dev/null").arg(p.path().string());
+        auto command = Command(string("diff")).arg(string("-u")).arg(string("/dev/null")).arg(p.path());
         const auto& [output, status_code] = command.invoke();
         revision << output;
       }
