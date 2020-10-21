@@ -2,6 +2,7 @@
 #include "arg.h"
 #include "init.hpp"
 #include "commit.hpp"
+#include "status.hpp"
 
 #include <iostream>
 #include <memory>
@@ -13,6 +14,7 @@ map<string, unique_ptr<Arg>> init_arg_register() {
   map<string, unique_ptr<Arg>> args;
   args.emplace("init", make_unique<Init>());
   args.emplace("commit", make_unique<Commit>());
+  args.emplace("status", make_unique<Status>());
   return args;
 }
 
