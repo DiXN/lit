@@ -23,11 +23,17 @@ class Repository: public Singleton<Repository> {
     const auto current_ref = ref_path / "master";
     const auto object_path = lit_path / "objects";
     const auto branch_path = lit_path / "branches";
+    const auto state_path = lit_path / "state";
+    const auto init_state_path = lit_path / "state" / "init";
+    const auto current_state_path = lit_path / "state" / "current";
     fs::create_directory(lit_path);
     fs::create_directory(ref_path);
     fs::create_directory(current_ref);
     fs::create_directory(object_path);
     fs::create_directory(branch_path);
+    fs::create_directory(state_path);
+    fs::create_directory(init_state_path);
+    fs::create_directory(current_state_path);
   };
 
   bool exists() const {
@@ -76,7 +82,6 @@ class Repository: public Singleton<Repository> {
       string token;
 
       for(int i = 0; getline(line_stream, token, delim); i++) {
-        //cout << token << endl;
         tokens[i] = token;
       }
 
@@ -101,6 +106,21 @@ class Repository: public Singleton<Repository> {
       return nullopt;
     } else {
       return optional<tuple<string, string, string>>(make_tuple(commit, time, message));
+    }
+  }
+
+  void copy_structure(const string type) const {
+    for (auto& p: fs::directory_iterator(root_path())) {
+      if (!is_excluded(p)) {
+        auto init_path = lit_path / "state" / type;
+        const auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
+
+        try {
+          fs::copy(p, init_path / fs::relative(p, root_path()), copy_options);
+        } catch(fs::filesystem_error& er) {
+          cerr << "copy failed: " << er.what() << endl;
+        }
+      }
     }
   }
 };
