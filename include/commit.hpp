@@ -2,7 +2,6 @@
 
 #include "repository.hpp"
 #include "arg.h"
-#include "exec.hpp"
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -67,7 +66,8 @@ class Commit: public Arg {
       if (!repo.is_excluded(p)) {
         string cmd("diff");
         auto command = Command(cmd).arg("-u").arg("/dev/null").arg(p.path().string());
-        revision << command.invoke();
+        const auto& [output, status_code] = command.invoke();
+        revision << output;
       }
     }
 

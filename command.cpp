@@ -1,6 +1,7 @@
 #include "command.h"
-#include "exec.hpp"
 #include <iostream>
+#include <sstream>
+#include <ostream>
 #include <numeric>
 
 Command::Command(const string command): command(std::move(command)) {}
@@ -18,17 +19,33 @@ void Command::printArgs() {
   }
 }
 
-string Command::invoke() {
+tuple<string, int> Command::invoke() {
   const auto& cmd =
       std::accumulate(args.begin(), args.end(), command, [](const string& a, string b) { return a + " " + b; });
 
   ostringstream oss;
   oss << "sh -c " << "\"" << cmd << "\"" << " 2>&1";
 
-  cout << oss.str() << endl;
+  array<char, 128> buffer;
 
-  auto output = exec(std::move(oss.str().c_str())).output();
+  auto pipe = popen(oss.str().c_str(), "r");
 
-  return std::move(output.str());
+  if (!pipe) {
+    throw runtime_error("popen failure");
+  }
+
+  stringstream output;
+
+  while (fgets(buffer.data(), buffer.size(), pipe)) {
+    output << buffer.data();
+  }
+
+  auto exit_code = pclose(pipe);
+
+  if(exit_code == -1) {
+    throw runtime_error("pclose failure");
+  }
+
+  return make_tuple(output.str(), exit_code);
 }
 
