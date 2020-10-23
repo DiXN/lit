@@ -75,7 +75,7 @@ class Repository: public Singleton<Repository> {
     return current_branch.string();
   }
 
-  optional<tuple<string, string, string>> last_commit() const {
+  optional<tuple<string, string, string>> last_commit_of_branch(const string& branch) const {
     auto split = [](const string& line, char delim) {
       array<string, 3> tokens;
       stringstream line_stream(line);
@@ -88,7 +88,7 @@ class Repository: public Singleton<Repository> {
       return tokens;
     };
 
-    ifstream branch_file(lit_path / "branches" / current_branch());
+    ifstream branch_file(lit_path / "branches" / branch);
 
     string commit;
     string time;

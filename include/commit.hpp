@@ -17,8 +17,12 @@ class Commit: public Arg {
   void write_commit(const Repository& repo, const stringstream& ss) const {
     ofstream commit;
     commit.open(repo.get_lit_path() / "branches" / repo.current_branch(), ofstream::out | ofstream::app);
-    commit << ss.str() << endl;
+    commit << ss.str();
     commit.close();
+
+    ofstream total(repo.get_lit_path() / "branches" / ".last");
+    total << ss.str();
+    total.close();
   }
 
   public:
@@ -27,14 +31,14 @@ class Commit: public Arg {
     const auto& repo = Repository::instance();
 
     const auto now = std::time(nullptr);
-    const auto& last_commit = repo.last_commit();
+    const auto& last_commit = repo.last_commit_of_branch(".last");
 
     fs::path revision_path;
     if (!last_commit) {
-      revision_path = repo.get_lit_path() / "objects" / "r1";
+      revision_path = repo.get_lit_path() / "objects" / "r0";
 
       stringstream commit;
-      commit << "r1" << "|" << put_time(localtime(&now), "%c") << "|" << *message << endl;
+      commit << "r0" << "|" << put_time(localtime(&now), "%c") << "|" << *message << endl;
       write_commit(repo, commit);
 
       repo.copy_structure(move("init"));

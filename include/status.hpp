@@ -19,7 +19,7 @@ class Status: public Arg {
     }
 
     const auto& repo = Repository::instance();
-    const auto& last_commit = repo.last_commit();
+    const auto& last_commit = repo.last_commit_of_branch(".total");
 
     if (!last_commit) {
       for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
