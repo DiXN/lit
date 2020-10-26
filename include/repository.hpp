@@ -75,19 +75,19 @@ class Repository: public Singleton<Repository> {
     return current_branch.string();
   }
 
+  array<string, 3> extract_commit_information(const string& line, char delim) const {
+    array<string, 3> tokens;
+    stringstream line_stream(line);
+    string token;
+
+    for(int i = 0; getline(line_stream, token, delim); i++) {
+      tokens[i] = token;
+    }
+
+    return tokens;
+  }
+
   optional<tuple<string, string, string>> last_commit_of_branch(const string& branch) const {
-    auto split = [](const string& line, char delim) {
-      array<string, 3> tokens;
-      stringstream line_stream(line);
-      string token;
-
-      for(int i = 0; getline(line_stream, token, delim); i++) {
-        tokens[i] = token;
-      }
-
-      return tokens;
-    };
-
     ifstream branch_file(lit_path / "branches" / branch);
 
     string commit;
@@ -96,7 +96,7 @@ class Repository: public Singleton<Repository> {
     string line;
 
     while(getline(branch_file, line)) {
-      array<string, 3> tokens = split(line, '|');
+      array<string, 3> tokens = extract_commit_information(line, '|');
       commit = tokens[0];
       time = tokens[1];
       message = tokens[2];
@@ -120,6 +120,14 @@ class Repository: public Singleton<Repository> {
         } catch(fs::filesystem_error& er) {
           cerr << "copy failed: " << er.what() << endl;
         }
+      }
+    }
+  }
+
+  void clean() const {
+    for (auto& p: fs::directory_iterator(root_path())) {
+      if (!is_excluded(p)) {
+        fs::remove_all(p);
       }
     }
   }
