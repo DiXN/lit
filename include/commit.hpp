@@ -42,6 +42,7 @@ class Commit: public Arg {
       write_commit(repo, commit);
 
       repo.copy_structure(move("init"));
+      repo.copy_structure(move("current"));
     } else {
       const auto& [last_commit_nr, time_of_commit, commit_message] = *last_commit;
 
@@ -60,7 +61,6 @@ class Commit: public Arg {
 
       write_commit(repo, new_revision);
 
-      repo.copy_structure(move("current"));
     }
 
     ofstream revision;
@@ -68,12 +68,25 @@ class Commit: public Arg {
 
     for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
       if (!repo.is_excluded(p)) {
-        auto command = Command(string("diff")).arg(string("-u")).arg(string("/dev/null")).arg(p.path());
+
+        string comparer;
+        if (!last_commit) {
+          comparer = "/dev/null";
+        } else {
+          const auto relative_path = fs::relative(p, repo.root_path());
+          const auto previous_path = repo.get_lit_path() / "state" / "current" / relative_path;
+          comparer = previous_path.string();
+          cout << comparer << endl;
+        }
+
+        auto command = Command(string("diff")).arg(string("-u")).arg(comparer).arg(p.path());
+
         const auto& [output, status_code] = command.invoke();
         revision << output;
       }
     }
 
+    repo.copy_structure(move("current"));
     revision.close();
 
     return true;
