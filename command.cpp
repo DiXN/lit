@@ -30,6 +30,7 @@ tuple<string, int> Command::invoke() {
       std::accumulate(args.begin(), args.end(), command, [](const string& a, string b) { return a + " " + b; });
 
   ostringstream oss;
+
   oss << "sh -c " << "\"" << cmd << "\"" << " 2>&1";
 
   array<char, 128> buffer;

@@ -34,6 +34,7 @@ class Repository: public Singleton<Repository> {
     fs::create_directory(state_path);
     fs::create_directory(init_state_path);
     fs::create_directory(current_state_path);
+    ofstream total(branch_path / ".total");
   };
 
   bool exists() const {
@@ -73,6 +74,91 @@ class Repository: public Singleton<Repository> {
     }
 
     return current_branch.string();
+  }
+
+  void create_branch(const string& branch) const {
+    ofstream new_branch(lit_path / "branches" / branch);
+  }
+
+  void switch_branch(const string& branch) const {
+    const auto& branch_ref_root = lit_path / "ref";
+    fs::remove(branch_ref_root / current_branch());
+    fs::create_directory(branch_ref_root / branch);
+  }
+
+  void copy_commit_structure(const string& new_branch, const string& previous_branch) const {
+    ifstream branch_file(lit_path / "branches" / previous_branch);
+
+    ofstream new_branch_file;
+    new_branch_file.open(lit_path / "branches" / new_branch, ofstream::out | ofstream::app);
+
+    string commit;
+    string line;
+
+    while(getline(branch_file, line)) {
+      array<string, 3> tokens = extract_commit_information(line, '|');
+      commit = tokens[0];
+
+      new_branch_file << line << endl;
+
+      if (commit == new_branch) {
+        break;
+      }
+    }
+  }
+
+  int unique_commit_id() const {
+    const auto& last_commit = last_commit_of_branch(".total");
+
+    if (!last_commit) {
+      return 0;
+    }
+
+    const auto& [last_commit_nr, date, message] = *last_commit;
+
+    stringstream prev_revision(last_commit_nr);
+    char prev_rev;
+    int prev_rev_number;
+    prev_revision >> prev_rev;
+    prev_revision >> prev_rev_number;
+
+    return ++prev_rev_number;
+  }
+
+  void write_commit(const string& branch, const stringstream& ss) const {
+    ofstream commit;
+    commit.open(lit_path / "branches" / branch, ofstream::out | ofstream::app);
+    commit << ss.str();
+    commit.close();
+
+    ofstream last(lit_path / "branches" / ".last");
+    last << ss.str();
+    last.close();
+
+    cout << ss.str();
+
+    ofstream total;
+    total.open(lit_path / "branches" / ".total", ofstream::out | ofstream::app);
+    total << ss.str();
+    total.close();
+  }
+
+  bool is_head(const string& last_commit_nr) const {
+    const auto& last_commit = last_commit_of_branch(current_branch());
+
+    if(!last_commit) {
+      return false;
+    }
+
+    const auto &[current_commit_nr, current_date, current_message] = *last_commit;
+
+    if (current_commit_nr != last_commit_nr) {
+      return false;
+    } else {
+      return true;
+    }
+
+    return false;
   }
 
   array<string, 3> extract_commit_information(const string& line, char delim) const {
