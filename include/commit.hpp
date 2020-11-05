@@ -65,7 +65,6 @@ class Commit: public Arg {
           const auto relative_path = fs::relative(p, repo.root_path());
           const auto previous_path = repo.get_lit_path() / "state" / "current" / relative_path;
           comparer = previous_path.string();
-          cout << comparer << endl;
         }
 
         auto command = Command(string("diff")).arg(string("-u")).arg(comparer).arg(p.path());
@@ -75,8 +74,8 @@ class Commit: public Arg {
       }
     }
 
-    repo.copy_structure(move("current"));
     revision.close();
+    repo.copy_structure(move("current"));
 
     return true;
   }

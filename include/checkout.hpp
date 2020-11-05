@@ -28,18 +28,22 @@ class Checkout: public Arg {
       const auto& commit_id = *arg;
 
       for (auto& p: fs::directory_iterator(repo.get_lit_path() / "branches")) {
-        if(p.path().filename() == ".last") {
+        if(p.path().filename() == ".last" || p.path().filename() == ".total") {
           continue;
         }
+
+        cout << "looking for commit in " << p.path().filename() << endl;
 
         ifstream branch_file(p.path());
 
         string commit;
         string line;
+        vector<string> commits_in_branch;
 
         while(getline(branch_file, line)) {
           array<string, 3> tokens = repo.extract_commit_information(line, '|');
           commit = tokens[0];
+          commits_in_branch.push_back(commit);
 
           if (commit == commit_id) {
             repo.switch_branch(p.path().filename());
@@ -47,24 +51,25 @@ class Checkout: public Arg {
             last << line;
 
             repo.clean();
-            for (auto& patch_files: fs::directory_iterator(repo.get_lit_path() / "objects")) {
-              auto command = Command("patch").arg(string("-s")).arg(string("-i")).arg(patch_files.path());
 
+            for (auto& com : commits_in_branch) {
+              const auto& patch_file = repo.get_lit_path() / "objects" / com;
+              cout << patch_file << endl;
+              auto command = Command("patch").arg(string("-s")).arg(string("-i")).arg(patch_file);
               const auto& [output, status] = command.invoke();
-              if (patch_files.path().filename() == commit) {
-                break;
-              }
             }
+
+            repo.copy_structure(move("current"));
             return true;
           }
         }
 
-        cerr << "commit could not be found." << endl;
-        return false;
+        commits_in_branch.clear();
       }
     }
 
-    return true;
+    cerr << "commit could not be found." << endl;
+    return false;
   }
 
   ostringstream info() const override {
