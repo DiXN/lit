@@ -3,11 +3,13 @@
 #include "singleton.h"
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <iostream>
 #include <optional>
 #include <string>
 #include <algorithm>
 #include <tuple>
+#include <map>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -268,6 +270,54 @@ class Repository: public Singleton<Repository> {
     }
 
     return false;
+  }
+
+  enum DiffTypes {
+    modified,
+    deleted,
+    added,
+    none
+  };
+
+  array<char, 4> diff_types_label {
+    'M',
+    'D',
+    'A',
+    '\0'
+  };
+
+  map<fs::path, DiffTypes> file_differences(fs::path compare_path) const {
+    vector<fs::path> deleted_paths;
+    map<fs::path, DiffTypes> file_diffs;
+
+    for (auto& p: fs::recursive_directory_iterator(compare_path)) {
+      const auto& curr_relative = fs::relative(p, compare_path);
+      const auto& search_path = root_path() / curr_relative;
+
+      if(!fs::exists(search_path)) {
+        file_diffs.emplace(curr_relative, DiffTypes::deleted);
+        deleted_paths.push_back(p);
+      }
+    }
+
+    for (auto& p: fs::recursive_directory_iterator(root_path())) {
+      if (!is_excluded(p)) {
+        const auto& curr_relative = fs::relative(p, root_path());
+        const auto& search_path = lit_path / "state" / "current" / curr_relative;
+
+        if(!fs::exists(search_path)) {
+          file_diffs.emplace(curr_relative, DiffTypes::added);
+        } else if (find(deleted_paths.begin(), deleted_paths.end(), p) == deleted_paths.end()) {
+          auto command = Command("diff").arg(curr_relative).arg(search_path);
+          const auto& [output, status] = command.invoke();
+
+          if (status == 1)
+            file_diffs.emplace(curr_relative, DiffTypes::modified);
+        }
+      }
+    }
+
+    return file_diffs;
   }
 };
 
