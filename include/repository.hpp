@@ -161,18 +161,6 @@ class Repository: public Singleton<Repository> {
     return false;
   }
 
-  array<string, 3> extract_commit_information(const string& line, char delim) const {
-    array<string, 3> tokens;
-    stringstream line_stream(line);
-    string token;
-
-    for(int i = 0; getline(line_stream, token, delim); i++) {
-      tokens[i] = token;
-    }
-
-    return tokens;
-  }
-
   optional<tuple<string, string, string>> last_commit_of_branch(const string& branch) const {
     ifstream branch_file(lit_path / "branches" / branch);
 
@@ -216,6 +204,70 @@ class Repository: public Singleton<Repository> {
         fs::remove_all(p);
       }
     }
+  }
+
+  array<string, 3> extract_commit_information(const string& line, char delim) const {
+    array<string, 3> tokens;
+    stringstream line_stream(line);
+    string token;
+
+    for(int i = 0; getline(line_stream, token, delim); i++) {
+      tokens[i] = token;
+    }
+
+    return tokens;
+  }
+
+  bool checkout_commit(const string& commit_id, optional<string> branch = nullopt, const string& patch_directory = ".", bool change_branch = true) const {
+    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
+      if(p.path().filename() == ".last" || p.path().filename() == ".total") {
+        continue;
+      }
+
+      cout << "looking for commit in " << p.path().filename() << endl;
+
+      ifstream branch_file;
+
+      if (!branch)
+        branch_file.open(p.path());
+      else
+        branch_file.open(lit_path / "branches" / *branch);
+
+      string commit;
+      string line;
+      vector<string> commits_in_branch;
+
+      while(getline(branch_file, line)) {
+        array<string, 3> tokens = extract_commit_information(line, '|');
+        commit = tokens[0];
+        commits_in_branch.push_back(commit);
+
+        if (commit == commit_id) {
+          if (change_branch) {
+            switch_branch(p.path().filename());
+            ofstream last(lit_path / "branches" / ".last");
+            last << line;
+
+            clean();
+          }
+
+          for (auto& com : commits_in_branch) {
+            const auto& patch_file = lit_path / "objects" / com;
+            auto command = Command("patch").arg(string("-s")).arg(string("-d")).arg(patch_directory).arg(string("-i")).arg(patch_file);
+            const auto& [output, status] = command.invoke();
+          }
+
+          if (change_branch)
+            copy_structure(move("current"));
+
+          return true;
+        }
+      }
+
+      commits_in_branch.clear();
+    }
+
+    return false;
   }
 };
 
