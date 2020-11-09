@@ -28,7 +28,7 @@ class Status: public Arg {
         }
       }
     } else {
-      for(const auto &[path, diff_type] : repo.file_differences(repo.root_path())) {
+      for(const auto &[path, diff_type] : repo.file_differences(repo.root_path(), repo.get_lit_path() / "state" / "current")) {
         cout << repo.diff_types_label[diff_type] << "  " << path << endl;
       }
     }
