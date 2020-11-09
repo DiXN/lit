@@ -17,6 +17,8 @@ class Checkout: public Arg {
     const auto& repo = Repository::instance();
 
     if (!arg) {
+      repo.clean();
+
       const auto copy_options = fs::copy_options::overwrite_existing
                               | fs::copy_options::recursive;
 
