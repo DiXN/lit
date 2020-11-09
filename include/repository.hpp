@@ -185,6 +185,21 @@ class Repository: public Singleton<Repository> {
     }
   }
 
+  optional<string> find_branch_for_commit(const string& commit) const {
+    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
+      const auto& file_name = p.path().filename();
+      const auto& last_commit = last_commit_of_branch(file_name);
+      if (last_commit && file_name != ".total" && file_name != ".last") {
+        const auto &[commit_id, date, commit_message] = *last_commit;
+
+        if(commit_id == commit)
+          return optional<string>(file_name);
+      }
+    }
+
+    return nullopt;
+  }
+
   void copy_structure(const string type) const {
     for (auto& p: fs::directory_iterator(root_path())) {
       if (!is_excluded(p)) {
@@ -286,13 +301,14 @@ class Repository: public Singleton<Repository> {
     '\0'
   };
 
-  map<fs::path, DiffTypes> file_differences(fs::path compare_path) const {
+  map<fs::path, DiffTypes> file_differences(fs::path init_path, fs::path compare_path) const {
     vector<fs::path> deleted_paths;
     map<fs::path, DiffTypes> file_diffs;
 
     for (auto& p: fs::recursive_directory_iterator(compare_path)) {
       const auto& curr_relative = fs::relative(p, compare_path);
-      const auto& search_path = root_path() / curr_relative;
+      const auto& search_path = init_path / curr_relative;
+
 
       if(!fs::exists(search_path)) {
         file_diffs.emplace(curr_relative, DiffTypes::deleted);
@@ -300,19 +316,21 @@ class Repository: public Singleton<Repository> {
       }
     }
 
-    for (auto& p: fs::recursive_directory_iterator(root_path())) {
+    for (auto& p: fs::recursive_directory_iterator(init_path)) {
       if (!is_excluded(p)) {
-        const auto& curr_relative = fs::relative(p, root_path());
-        const auto& search_path = lit_path / "state" / "current" / curr_relative;
+        const auto& curr_relative = init_path / p.path().filename();
+        const auto& search_path = compare_path / p.path().filename();
+
+        cout << search_path << endl;
 
         if(!fs::exists(search_path)) {
-          file_diffs.emplace(curr_relative, DiffTypes::added);
+          file_diffs.emplace(curr_relative.filename(), DiffTypes::added);
         } else if (find(deleted_paths.begin(), deleted_paths.end(), p) == deleted_paths.end()) {
           auto command = Command("diff").arg(curr_relative).arg(search_path);
           const auto& [output, status] = command.invoke();
 
           if (status == 1)
-            file_diffs.emplace(curr_relative, DiffTypes::modified);
+            file_diffs.emplace(curr_relative.filename(), DiffTypes::modified);
         }
       }
     }
