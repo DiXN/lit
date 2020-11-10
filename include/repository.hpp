@@ -321,8 +321,6 @@ class Repository: public Singleton<Repository> {
         const auto& curr_relative = init_path / p.path().filename();
         const auto& search_path = compare_path / p.path().filename();
 
-        cout << search_path << endl;
-
         if(!fs::exists(search_path)) {
           file_diffs.emplace(curr_relative.filename(), DiffTypes::added);
         } else if (find(deleted_paths.begin(), deleted_paths.end(), p) == deleted_paths.end()) {
