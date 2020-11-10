@@ -21,6 +21,28 @@ class Log: public Arg {
 
     const auto& repo = Repository::instance();
 
+    const auto merge_check = [&repo](const string& line) -> optional<tuple<string, string>> {
+      array<string, 3> line_tokens = repo.extract_commit_information(line, '|');
+      auto& line_message = line_tokens[2];
+
+      stringstream line_stream(line_message);
+      string merge_identifier;
+      line_stream >> merge_identifier;
+
+      if (merge_identifier == "Merge") {
+        string branch_a;
+        string branch_b;
+        string into_identifier;
+        line_stream >> branch_a;
+        line_stream >> into_identifier;
+        line_stream >> branch_b;
+
+        return optional(make_tuple(branch_a, branch_b));
+      } else {
+        return nullopt;
+      }
+    };
+
     ifstream branch_file(repo.get_lit_path() / "branches" / ".total");
 
     string commit;
@@ -75,10 +97,30 @@ class Log: public Arg {
         } else {
           if(branch != "master") {
             stringstream ss;
-            ss << setw(h_offset * 6) << "◯";
+
+            if(!art[index].empty())
+              ss << setw(h_offset * 5) << "◯";
+            else
+              ss << setw(h_offset * 6) << "◯";
+
             art[index] += ss.str();
           } else {
             art[index] += "◯";
+          }
+        }
+
+        const auto& merge_line = merge_check(line);
+
+        if (merge_line) {
+          const auto &[branch_a, branch_b] = *merge_line;
+          if(branch_b == branch) {
+            const auto& actual_branch = repo.find_branch_for_commit(branch_a);
+            const auto &[other_h_offset, other_c_offset] = branches_to_read_from[*actual_branch];
+            const auto distance = other_h_offset - h_offset;
+
+            for (int i = 0; i < distance * 2; i++) {
+              art[index] += "-";
+            }
           }
         }
 
@@ -90,6 +132,23 @@ class Log: public Arg {
           stringstream ss;
           ss << setw(h_offset * 3) << "|";
           art[i] += ss.str();
+        }
+
+        auto search_index = last_index + 1;
+
+        if(reverse_lines.size() > search_index && i == search_index) {
+          const auto& merge_line = merge_check(reverse_lines[search_index]);
+
+          if (merge_line) {
+            const auto &[branch_a, branch_b] = *merge_line;
+            if (art[i][art[i].size() - 1] == '-') {
+              art[i] += "¬";
+            } else {
+              stringstream ss;
+              ss << setw(h_offset * 3) << "ı";
+              art[i] += ss.str();
+            }
+          }
         }
       }
 
