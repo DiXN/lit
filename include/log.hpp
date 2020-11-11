@@ -92,20 +92,22 @@ class Log: public Arg {
         int index = std::stoi(branch_commit.erase(0, 1));
         commit_indices.push_back(index);
 
-        if (branch != "master" &&  c_offset == index) {
-          art[index] += "--◯";
-        } else {
-          if(branch != "master") {
-            stringstream ss;
-
-            if(!art[index].empty())
-              ss << setw(h_offset * 5) << "◯";
-            else
-              ss << setw(h_offset * 6) << "◯";
-
-            art[index] += ss.str();
+        if(index >= c_offset) {
+          if (branch != "master" && index == c_offset) {
+            art[index] += "--◯";
           } else {
-            art[index] += "◯";
+            if(branch != "master") {
+              stringstream ss;
+
+              if(!art[index].empty())
+                ss << setw(h_offset > 1 ? h_offset * 6 - 4 : h_offset * 5) << "◯";
+              else
+                ss << setw(h_offset > 1 ? h_offset * 6 - 3 : h_offset * 6) << "◯";
+
+              art[index] += ss.str();
+            } else {
+              art[index] += "◯";
+            }
           }
         }
 
@@ -115,11 +117,14 @@ class Log: public Arg {
           const auto &[branch_a, branch_b] = *merge_line;
           if(branch_b == branch) {
             const auto& actual_branch = repo.find_branch_for_commit(branch_a);
-            const auto &[other_h_offset, other_c_offset] = branches_to_read_from[*actual_branch];
-            const auto distance = other_h_offset - h_offset;
 
-            for (int i = 0; i < distance * 2; i++) {
-              art[index] += "-";
+            if (actual_branch) {
+              const auto &[other_h_offset, other_c_offset] = branches_to_read_from[*actual_branch];
+              const auto distance = other_h_offset - h_offset;
+
+              for (int i = 0; i < distance * 2 + (other_h_offset - 1); i++) {
+                art[index] += "-";
+              }
             }
           }
         }
@@ -128,10 +133,14 @@ class Log: public Arg {
       }
 
       for(size_t i = 0; i < reverse_lines.size(); i++) {
-        if(std::find(commit_indices.begin(), commit_indices.end(), i) == commit_indices.end() && i <= last_index) {
-          stringstream ss;
-          ss << setw(h_offset * 3) << "|";
-          art[i] += ss.str();
+        if(std::find(commit_indices.begin(), commit_indices.end(), i) == commit_indices.end() && i <= last_index && i >= c_offset) {
+          if (art[i][art[i].size() - 1] == '-') {
+            art[i] += "|";
+          } else {
+            stringstream ss;
+            ss << setw(h_offset > 1 ? 3 : h_offset * 3) << "|";
+            art[i] += ss.str();
+          }
         }
 
         auto search_index = last_index + 1;
