@@ -6,6 +6,7 @@
 #include <iostream>
 #include <filesystem>
 #include <tuple>
+#include <ctime>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -41,6 +42,7 @@ class Merge: public Arg {
       }
 
       const auto& branch = repo.find_branch_for_commit(*arg);
+      bool potential_conflict = false;
 
       if(branch) {
         const auto& commit_id = *arg;
@@ -49,14 +51,7 @@ class Merge: public Arg {
         const auto& lit_merge_parent_path = lit_merge_path.parent_path();
         const auto& comparer_path = lit_merge_parent_path / "comparer";
 
-        for (auto& p: fs::directory_iterator(repo.get_lit_path() / "objects")) {
-          auto command = Command("patch").arg(string("-s")).arg(string("-d")).arg(comparer_path).arg(string("-i")).arg(p);
-          const auto& [output, status] = command.invoke();
-
-          if (p.path().filename() == *branch) {
-            break;
-          }
-        }
+        repo.checkout_commit(*branch, *branch, comparer_path, false);
 
         for(const auto &[path, diff_type] : repo.file_differences(comparer_path, lit_merge_path)) {
           cout << repo.diff_types_label[diff_type] << "  " << path << endl;
@@ -78,6 +73,7 @@ class Merge: public Arg {
               const auto& [output, status] = command.invoke();
 
               if (status == 1) {
+                potential_conflict = true;
                 cout << "conflict potential!" << endl;
                 fs::copy(lit_merge_path / path, path.string() + "." + *arg);
                 fs::copy(comparer_path / path, path.string() + "." + *branch);
@@ -90,7 +86,20 @@ class Merge: public Arg {
 
               break;
           }
+        }
 
+        if(!potential_conflict) {
+          const auto& current_branch = repo.current_branch();
+
+          stringstream commit_stream;
+          commit_stream << "Merge " << *arg << " into " << current_branch;
+
+          int commit_id = repo.unique_commit_id();
+          stringstream new_revision;
+          const auto now = std::time(nullptr);
+
+          new_revision << "r" << commit_id << "|" << put_time(localtime(&now), "%c") << "|" << commit_stream.str() << endl;
+          repo.write_commit(current_branch, new_revision);
         }
       }
     }
