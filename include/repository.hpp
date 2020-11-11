@@ -187,13 +187,23 @@ class Repository: public Singleton<Repository> {
 
   optional<string> find_branch_for_commit(const string& commit) const {
     for (auto& p: fs::directory_iterator(lit_path / "branches")) {
-      const auto& file_name = p.path().filename();
-      const auto& last_commit = last_commit_of_branch(file_name);
-      if (last_commit && file_name != ".total" && file_name != ".last") {
-        const auto &[commit_id, date, commit_message] = *last_commit;
+      const auto file_name = p.path().filename();
 
-        if(commit_id == commit)
+      if (file_name == ".total" || file_name == ".last")
+        continue;
+
+      ifstream branch_file(lit_path / "branches" / file_name);
+
+      string line;
+      string branch_commit;
+
+      while(getline(branch_file, line)) {
+        array<string, 3> tokens = extract_commit_information(line, '|');
+        branch_commit = tokens[0];
+
+        if(branch_commit == commit) {
           return optional<string>(file_name);
+        }
       }
     }
 
