@@ -53,21 +53,22 @@ class Merge: public Arg {
 
         repo.checkout_commit(*branch, *branch, comparer_path, false);
 
-        for(const auto &[path, diff_type] : repo.file_differences(comparer_path, lit_merge_path)) {
+        for(const auto &[path, diff_type] : repo.file_differences(lit_merge_path, comparer_path)) {
           cout << repo.diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
             case Repository::DiffTypes::added:
-              fs::copy(lit_merge_path / path, repo.root_path() / path);
+              fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
               break;
             case Repository::DiffTypes::deleted:
               fs::remove_all(repo.root_path() / path);
               break;
             case Repository::DiffTypes::modified:
               const auto& lit_temp_path = lit_merge_path.parent_path();
-              const auto& file_name = path.filename();
 
-              const auto& curr_relative = comparer_path / file_name;
-              const auto& search_path = repo.root_path() / file_name;
+              const auto& curr_relative = fs::relative(path, repo.root_path());
+              const auto& search_path = comparer_path / path;
+
+              cout << "== Comparing: " << curr_relative << " with: " << search_path << endl;
 
               auto command = Command("diff").arg(curr_relative).arg(search_path);
               const auto& [output, status] = command.invoke();
