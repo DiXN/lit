@@ -137,8 +137,6 @@ class Repository: public Singleton<Repository> {
     last << ss.str();
     last.close();
 
-    cout << ss.str();
-
     ofstream total;
     total.open(lit_path / "branches" / ".total", ofstream::out | ofstream::app);
     total << ss.str();
@@ -210,14 +208,16 @@ class Repository: public Singleton<Repository> {
     return nullopt;
   }
 
-  void copy_structure(const string type) const {
+  void copy_structure(const string&& type) const {
     for (auto& p: fs::directory_iterator(root_path())) {
       if (!is_excluded(p)) {
         auto init_path = lit_path / "state" / type;
-        const auto copy_options = fs::copy_options::update_existing | fs::copy_options::recursive;
+
+        fs::remove_all(init_path);
+        fs::create_directory(init_path);
 
         try {
-          fs::copy(p, init_path / fs::relative(p, root_path()), copy_options);
+          fs::copy(p, init_path / fs::relative(p, root_path()));
         } catch(fs::filesystem_error& er) {
           cerr << "copy failed: " << er.what() << endl;
         }
@@ -278,10 +278,31 @@ class Repository: public Singleton<Repository> {
             clean();
           }
 
+          fs::path path_l = fs::path(patch_directory);
+
+          int path_level = 0;
+
+          while(path_l.has_parent_path() && path_l != path_l.root_path()) {
+            path_l = path_l.parent_path();
+            path_level++;
+          }
+
           for (auto& com : commits_in_branch) {
             const auto& patch_file = lit_path / "objects" / com;
-            auto command = Command("patch").arg(string("-s")).arg(string("-d")).arg(patch_directory).arg(string("-i")).arg(patch_file);
-            const auto& [output, status] = command.invoke();
+
+            if (patch_directory != ".") {
+              auto command = Command("patch")
+                              .arg(string("-s")).arg(string("-p") + to_string(path_level))
+                              .arg(string("-d")).arg(patch_directory)
+                              .arg(string("-i")).arg(patch_file);
+              const auto& [output, status] = command.invoke();
+            } else {
+              auto command = Command("patch")
+                              .arg(string("-s"))
+                              .arg(string("-d")).arg(patch_directory)
+                              .arg(string("-i")).arg(patch_file);
+              const auto& [output, status] = command.invoke();
+            }
           }
 
           if (change_branch)
@@ -319,7 +340,6 @@ class Repository: public Singleton<Repository> {
       const auto& curr_relative = fs::relative(p, compare_path);
       const auto& search_path = init_path / curr_relative;
 
-
       if(!fs::exists(search_path)) {
         file_diffs.emplace(curr_relative, DiffTypes::deleted);
         deleted_paths.push_back(p);
@@ -328,13 +348,13 @@ class Repository: public Singleton<Repository> {
 
     for (auto& p: fs::recursive_directory_iterator(init_path)) {
       if (!is_excluded(p)) {
-        const auto& curr_relative = init_path / p.path().filename();
-        const auto& search_path = compare_path / p.path().filename();
+        const auto& curr_relative = fs::relative(p, init_path);
+        const auto& search_path = compare_path / curr_relative;
 
         if(!fs::exists(search_path)) {
-          file_diffs.emplace(curr_relative.filename(), DiffTypes::added);
+          file_diffs.emplace(curr_relative, DiffTypes::added);
         } else if (find(deleted_paths.begin(), deleted_paths.end(), p) == deleted_paths.end()) {
-          auto command = Command("diff").arg(curr_relative).arg(search_path);
+          auto command = Command("diff").arg(init_path / curr_relative).arg(search_path);
           const auto& [output, status] = command.invoke();
 
           if (status == 1)
