@@ -56,15 +56,15 @@ class Commit: public Arg {
     revision.open(revision_path.string(), ofstream::out | ofstream::app);
 
     for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
-      if (!repo.is_excluded(p)) {
+      if (!repo.is_excluded(p) && !fs::is_directory(p)) {
 
-        string comparer;
-        if (!last_commit) {
-          comparer = "/dev/null";
-        } else {
+        string comparer = "/dev/null";
+        if (last_commit) {
           const auto relative_path = fs::relative(p, repo.root_path());
           const auto previous_path = repo.get_lit_path() / "state" / "current" / relative_path;
-          comparer = previous_path.string();
+
+          if (fs::exists(previous_path))
+            comparer = previous_path.string();
         }
 
         auto command = Command(string("diff")).arg(string("-u")).arg(comparer).arg(p.path());
