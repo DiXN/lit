@@ -6,6 +6,7 @@
 #include "checkout.hpp"
 #include "merge.hpp"
 #include "log.hpp"
+#include "show.hpp"
 
 #include <iostream>
 #include <memory>
@@ -21,6 +22,7 @@ map<string, unique_ptr<Arg>> init_arg_register() {
   args.emplace("checkout", make_unique<Checkout>());
   args.emplace("merge", make_unique<Merge>());
   args.emplace("log", make_unique<Log>());
+  args.emplace("show", make_unique<Show>());
   return args;
 }
 
