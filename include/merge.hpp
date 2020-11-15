@@ -91,6 +91,7 @@ class Merge: public Arg {
 
         if(!potential_conflict) {
           const auto& current_branch = repo.current_branch();
+          const auto &[current_commit_nr, current_date, current_message] = *repo.last_commit_of_branch(current_branch);
 
           stringstream commit_stream;
           commit_stream << "Merge " << *arg << " into " << current_branch;
@@ -99,7 +100,10 @@ class Merge: public Arg {
           stringstream new_revision;
           const auto now = std::time(nullptr);
 
-          new_revision << "r" << commit_id << "|" << put_time(localtime(&now), "%c") << "|" << commit_stream.str() << endl;
+          new_revision << "r" << commit_id << "|"
+            << put_time(localtime(&now), "%c") << "|" << commit_stream.str()
+            << "|" << current_commit_nr << ","<< *arg << endl;
+
           repo.write_commit(current_branch, new_revision);
         }
       }

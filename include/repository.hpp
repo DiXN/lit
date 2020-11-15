@@ -98,7 +98,7 @@ class Repository: public Singleton<Repository> {
     string line;
 
     while(getline(branch_file, line)) {
-      array<string, 3> tokens = extract_commit_information(line, '|');
+      array<string, 4> tokens = extract_commit_information(line, '|');
       commit = tokens[0];
 
       new_branch_file << line << endl;
@@ -168,12 +168,14 @@ class Repository: public Singleton<Repository> {
     string time;
     string message;
     string line;
+    string parents;
 
     while(getline(branch_file, line)) {
-      array<string, 3> tokens = extract_commit_information(line, '|');
+      array<string, 4> tokens = extract_commit_information(line, '|');
       commit = tokens[0];
       time = tokens[1];
       message = tokens[2];
+      parents = tokens[3];
     }
 
     if (commit.empty()) {
@@ -181,6 +183,21 @@ class Repository: public Singleton<Repository> {
     } else {
       return optional<tuple<string, string, string>>(make_tuple(commit, time, message));
     }
+  }
+
+  optional<vector<string>> extract_parents(const string& parents) const {
+    if (parents == "root")
+      return nullopt;
+
+    const auto token_position = parents.find_first_of(",");
+
+    if (token_position == string::npos)
+      return optional(vector { parents });
+
+    const auto first_parent = parents.substr(0, token_position);
+    const auto second_parent = parents.substr(token_position, parents.length());
+
+    return optional(vector { first_parent, second_parent });
   }
 
   optional<string> find_branch_for_commit(const string& commit) const {
@@ -196,7 +213,7 @@ class Repository: public Singleton<Repository> {
       string branch_commit;
 
       while(getline(branch_file, line)) {
-        array<string, 3> tokens = extract_commit_information(line, '|');
+        array<string, 4> tokens = extract_commit_information(line, '|');
         branch_commit = tokens[0];
 
         if(branch_commit == commit) {
@@ -233,8 +250,8 @@ class Repository: public Singleton<Repository> {
     }
   }
 
-  array<string, 3> extract_commit_information(const string& line, char delim) const {
-    array<string, 3> tokens;
+  array<string, 4> extract_commit_information(const string& line, char delim) const {
+    array<string, 4> tokens;
     stringstream line_stream(line);
     string token;
 
@@ -265,7 +282,7 @@ class Repository: public Singleton<Repository> {
       vector<string> commits_in_branch;
 
       while(getline(branch_file, line)) {
-        array<string, 3> tokens = extract_commit_information(line, '|');
+        array<string, 4> tokens = extract_commit_information(line, '|');
         commit = tokens[0];
         commits_in_branch.push_back(commit);
 

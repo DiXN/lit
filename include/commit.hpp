@@ -2,6 +2,8 @@
 
 #include "repository.hpp"
 #include "arg.h"
+#include "revision.hpp"
+
 #include <sstream>
 #include <iostream>
 #include <fstream>
@@ -26,7 +28,7 @@ class Commit: public Arg {
       revision_path = repo.get_lit_path() / "objects" / "r0";
 
       stringstream commit;
-      commit << "r0" << "|" << put_time(localtime(&now), "%c") << "|" << *message << endl;
+      commit << "r0" << "|" << put_time(localtime(&now), "%c") << "|" << *message << "|" << "root" << endl;
       repo.write_commit(repo.current_branch(), commit);
 
       repo.copy_structure(move("init"));
@@ -36,7 +38,7 @@ class Commit: public Arg {
       int commit_id = repo.unique_commit_id();
 
       stringstream new_revision;
-      new_revision << "r" << commit_id << "|" << put_time(localtime(&now), "%c") << "|" << *message << endl;
+      new_revision << "r" << commit_id << "|" << put_time(localtime(&now), "%c") << "|" << *message << "|" << last_commit_nr << endl;
 
       stringstream new_revision_file;
       new_revision_file << "r" << commit_id;

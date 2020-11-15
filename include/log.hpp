@@ -22,7 +22,7 @@ class Log: public Arg {
     const auto& repo = Repository::instance();
 
     const auto merge_check = [&repo](const string& line) -> optional<tuple<string, string>> {
-      array<string, 3> line_tokens = repo.extract_commit_information(line, '|');
+      array<string, 4> line_tokens = repo.extract_commit_information(line, '|');
       auto& line_message = line_tokens[2];
 
       stringstream line_stream(line_message);
@@ -60,7 +60,7 @@ class Log: public Arg {
     int horizontal_offset = 0;
     int commit_offset = 0;
     for (auto& l : reverse_lines) {
-      array<string, 3> tokens = repo.extract_commit_information(l, '|');
+      array<string, 4> tokens = repo.extract_commit_information(l, '|');
       commit = tokens[0];
 
       branches_to_read_from.emplace("master", make_tuple(horizontal_offset, commit_offset));
@@ -86,7 +86,7 @@ class Log: public Arg {
 
       int last_index = 0;
       while(getline(branch_file, line)) {
-        array<string, 3> branch_tokens = repo.extract_commit_information(line, '|');
+        array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
         auto& branch_commit = branch_tokens[0];
 
         int index = std::stoi(branch_commit.erase(0, 1));
@@ -167,7 +167,7 @@ class Log: public Arg {
     commit_offset = art.size() - 1;
 
     for(auto it = reverse_lines.rbegin(); it != reverse_lines.rend(); ++it) {
-      array<string, 3> tokens = repo.extract_commit_information(*it, '|');
+      array<string, 4> tokens = repo.extract_commit_information(*it, '|');
       commit = tokens[0];
       time = tokens[1];
       message = tokens[2];
