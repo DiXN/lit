@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <filesystem>
+#include <ctime>
 
 using namespace std;
 
@@ -14,11 +15,12 @@ class Revision {
     string _message;
     string _date;
     optional<vector<string>> _parents;
+    string _parents_str;
+
+    const Repository& repo = Repository::instance();
 
   public:
   Revision(const string& revision) {
-    const auto& repo = Repository::instance();
-
     ifstream branch_file(repo.get_lit_path() / "branches" / ".total");
 
     string line;
@@ -41,22 +43,43 @@ class Revision {
     }
   }
 
-  Revision(const string& date, const string& message, const string& parents) {
-    const auto& repo = Repository::instance();
+  Revision(const string& message, const string& parents, const int revision_id = -1) {
     _parents = repo.extract_parents(parents);
     _message = message;
-    _date = date;
+
+    if (revision_id > - 1) {
+      stringstream oss;
+      oss << "r" << revision_id;
+      _revision = oss.str();
+    } else {
+      stringstream oss;
+      oss << "r" << repo.unique_commit_id();
+      _revision = oss.str();
+    }
+
+    const auto now = std::time(nullptr);
+    stringstream time_stream;
+    time_stream << put_time(localtime(&now), "%c");
+    _date = time_stream.str();
+
+    _parents_str = parents;
   }
 
-  string message() {
+  string message() const {
     return _message;
   }
 
-  string date() {
+  string date() const {
     return _date;
   }
 
-  optional<vector<string>> parents() {
+  optional<vector<string>> parents() const {
     return _parents;
+  }
+
+  void write(const string& branch) const {
+    stringstream new_revision;
+    new_revision << _revision << "|" << _date << "|" << _message << "|" << _parents_str << endl;
+    repo.write_commit(branch, new_revision);
   }
 };

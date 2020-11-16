@@ -9,7 +9,6 @@
 #include <fstream>
 #include <filesystem>
 #include <optional>
-#include <ctime>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -20,25 +19,23 @@ class Commit: public Arg {
   bool invoke(const optional<string> message) const override {
     const auto& repo = Repository::instance();
 
-    const auto now = std::time(nullptr);
     const auto& last_commit = repo.last_commit_of_branch(".last");
 
     fs::path revision_path;
     if (!last_commit) {
       revision_path = repo.get_lit_path() / "objects" / "r0";
 
-      stringstream commit;
-      commit << "r0" << "|" << put_time(localtime(&now), "%c") << "|" << *message << "|" << "root" << endl;
-      repo.write_commit(repo.current_branch(), commit);
+      Revision revision(*message, "root", 0);
+      revision.write(repo.current_branch());
 
       repo.copy_structure(move("init"));
       repo.copy_structure(move("current"));
     } else {
       const auto& [last_commit_nr, date, commit_message] = *last_commit;
       int commit_id = repo.unique_commit_id();
+      const auto& current_branch = repo.current_branch();
 
-      stringstream new_revision;
-      new_revision << "r" << commit_id << "|" << put_time(localtime(&now), "%c") << "|" << *message << "|" << last_commit_nr << endl;
+      Revision revision(*message, last_commit_nr, commit_id);
 
       stringstream new_revision_file;
       new_revision_file << "r" << commit_id;
@@ -46,11 +43,11 @@ class Commit: public Arg {
 
       if (!repo.is_head(last_commit_nr)) {
         repo.create_branch(last_commit_nr);
-        repo.copy_commit_structure(last_commit_nr, repo.current_branch());
-        repo.write_commit(last_commit_nr, new_revision);
+        repo.copy_commit_structure(last_commit_nr, current_branch);
+        revision.write(last_commit_nr);
         repo.switch_branch(last_commit_nr);
       } else {
-        repo.write_commit(repo.current_branch(), new_revision);
+        revision.write(current_branch);
       }
     }
 

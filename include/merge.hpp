@@ -2,6 +2,8 @@
 
 #include "repository.hpp"
 #include "arg.h"
+#include "revision.hpp"
+
 #include <sstream>
 #include <iostream>
 #include <filesystem>
@@ -96,15 +98,8 @@ class Merge: public Arg {
           stringstream commit_stream;
           commit_stream << "Merge " << *arg << " into " << current_branch;
 
-          int commit_id = repo.unique_commit_id();
-          stringstream new_revision;
-          const auto now = std::time(nullptr);
-
-          new_revision << "r" << commit_id << "|"
-            << put_time(localtime(&now), "%c") << "|" << commit_stream.str()
-            << "|" << current_commit_nr << ","<< *arg << endl;
-
-          repo.write_commit(current_branch, new_revision);
+          Revision revision(commit_stream.str(), current_commit_nr + "," + *arg);
+          revision.write(current_branch);
         }
       }
     }
