@@ -35,7 +35,15 @@ class Commit: public Arg {
       int commit_id = repo.unique_commit_id();
       const auto& current_branch = repo.current_branch();
 
-      Revision revision(*message, last_commit_nr, commit_id);
+      const auto& merge_progress = repo.get_lit_path() / "merge";
+      stringstream ss;
+      if (fs::exists(merge_progress)) {
+        ifstream m(merge_progress);
+        ss << "," << m.rdbuf();
+        fs::remove(merge_progress);
+      }
+
+      Revision revision(*message, last_commit_nr + ss.str(), commit_id);
 
       stringstream new_revision_file;
       new_revision_file << "r" << commit_id;

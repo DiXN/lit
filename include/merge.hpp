@@ -100,6 +100,9 @@ class Merge: public Arg {
 
           Revision revision(commit_stream.str(), current_commit_nr + "," + *arg);
           revision.write(current_branch);
+        } else {
+          ofstream merge_progress(repo.get_lit_path() / "merge");
+          merge_progress << *arg;
         }
       }
     }
