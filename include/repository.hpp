@@ -195,7 +195,7 @@ class Repository: public Singleton<Repository> {
       return optional(vector { parents });
 
     const auto first_parent = parents.substr(0, token_position);
-    const auto second_parent = parents.substr(token_position, parents.length());
+    const auto second_parent = parents.substr(token_position + 1, parents.length());
 
     return optional(vector { first_parent, second_parent });
   }
@@ -248,6 +248,43 @@ class Repository: public Singleton<Repository> {
         fs::remove_all(p);
       }
     }
+  }
+
+  optional<string> find_base_commit(const string& branch_a, const string& branch_b) const {
+    string branch_a_line;
+    string branch_b_line;
+
+    const auto& branch_location = lit_path / "branches";
+    ifstream branch_a_file(branch_location / branch_a);
+    ifstream branch_b_file(branch_location / branch_b);
+
+    vector<optional<vector<string>>> branch_a_lines;
+    vector<optional<vector<string>>> branch_b_lines;
+
+    while(getline(branch_a_file, branch_a_line)) {
+      array<string, 4> tokens = extract_commit_information(branch_a_line, '|');
+      const auto& parents = extract_parents(tokens[3]);
+      branch_a_lines.push_back(parents);
+    }
+
+    while(getline(branch_b_file, branch_b_line)) {
+      array<string, 4> tokens = extract_commit_information(branch_b_line, '|');
+      const auto& parents = extract_parents(tokens[3]);
+      branch_b_lines.push_back(parents);
+    }
+
+    for(auto it_a = branch_a_lines.rbegin(); it_a != branch_a_lines.rend(); ++it_a) {
+      for(auto it_b = branch_b_lines.rbegin(); it_b != branch_b_lines.rend(); ++it_b) {
+        if(*it_a && *it_b) {
+          for(const auto& elem : **it_a) {
+            if (std::find((**it_b).cbegin(), (**it_b).cend(), elem) != (**it_b).cend())
+              return optional(elem);
+          }
+        }
+      }
+    }
+
+    return nullopt;
   }
 
   array<string, 4> extract_commit_information(const string& line, char delim) const {

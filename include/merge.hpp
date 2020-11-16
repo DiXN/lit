@@ -43,17 +43,25 @@ class Merge: public Arg {
         return false;
       }
 
+
       const auto& branch = repo.find_branch_for_commit(*arg);
       bool potential_conflict = false;
 
       if(branch) {
+        const auto& base_of_branches = repo.find_base_commit(repo.current_branch(), *branch);
+
+        if(!base_of_branches) {
+          cerr << "Cannot find common base of branch: \"" << repo.current_branch() << "\" and branch: \"" << *branch << "\"" << endl;
+          return false;
+        }
+
         const auto& commit_id = *arg;
         repo.checkout_commit(commit_id, *branch, lit_merge_path, false);
 
         const auto& lit_merge_parent_path = lit_merge_path.parent_path();
         const auto& comparer_path = lit_merge_parent_path / "comparer";
 
-        repo.checkout_commit(*branch, *branch, comparer_path, false);
+        repo.checkout_commit(*base_of_branches, *branch, comparer_path, false);
 
         for(const auto &[path, diff_type] : repo.file_differences(lit_merge_path, comparer_path)) {
           cout << repo.diff_types_label[diff_type] << "  " << path << endl;
@@ -79,7 +87,7 @@ class Merge: public Arg {
                 potential_conflict = true;
                 cout << "conflict potential!" << endl;
                 fs::copy(lit_merge_path / path, path.string() + "." + *arg);
-                fs::copy(comparer_path / path, path.string() + "." + *branch);
+                fs::copy(comparer_path / path, path.string() + "." + *base_of_branches);
               } else {
                 const auto copy_options = fs::copy_options::overwrite_existing
                                            | fs::copy_options::recursive;
