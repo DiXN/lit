@@ -31,7 +31,7 @@ class Commit: public Arg {
       repo.copy_structure(move("init"));
       repo.copy_structure(move("current"));
     } else {
-      const auto& [last_commit_nr, date, commit_message] = *last_commit;
+      const auto& [last_commit_nr, date, commit_message, parents] = *last_commit;
       int commit_id = repo.unique_commit_id();
       const auto& current_branch = repo.current_branch();
 

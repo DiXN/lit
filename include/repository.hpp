@@ -116,7 +116,7 @@ class Repository: public Singleton<Repository> {
       return 0;
     }
 
-    const auto& [last_commit_nr, date, message] = *last_commit;
+    const auto& [last_commit_nr, date, message, parents] = *last_commit;
 
     stringstream prev_revision(last_commit_nr);
     char prev_rev;
@@ -150,7 +150,7 @@ class Repository: public Singleton<Repository> {
       return false;
     }
 
-    const auto &[current_commit_nr, current_date, current_message] = *last_commit;
+    const auto &[current_commit_nr, current_date, current_message, parents] = *last_commit;
 
     if (current_commit_nr != last_commit_nr) {
       return false;
@@ -161,7 +161,7 @@ class Repository: public Singleton<Repository> {
     return false;
   }
 
-  optional<tuple<string, string, string>> last_commit_of_branch(const string& branch) const {
+  optional<tuple<string, string, string, string>> last_commit_of_branch(const string& branch) const {
     ifstream branch_file(lit_path / "branches" / branch);
 
     string commit;
@@ -181,7 +181,7 @@ class Repository: public Singleton<Repository> {
     if (commit.empty()) {
       return nullopt;
     } else {
-      return optional<tuple<string, string, string>>(make_tuple(commit, time, message));
+      return optional(make_tuple(commit, time, message, parents));
     }
   }
 

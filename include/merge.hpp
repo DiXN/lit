@@ -93,7 +93,7 @@ class Merge: public Arg {
 
         if(!potential_conflict) {
           const auto& current_branch = repo.current_branch();
-          const auto &[current_commit_nr, current_date, current_message] = *repo.last_commit_of_branch(current_branch);
+          const auto &[current_commit_nr, current_date, current_message, parents] = *repo.last_commit_of_branch(current_branch);
 
           stringstream commit_stream;
           commit_stream << "Merge " << *arg << " into " << current_branch;
