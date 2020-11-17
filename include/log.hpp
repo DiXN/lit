@@ -162,7 +162,18 @@ class Log: public Arg {
       time = tokens[1];
       message = tokens[2];
 
-      cout << art[commit_offset] << "\t" << commit << " " << message << endl;
+      ifstream checked_out_commit(repo.get_lit_path() / "branches" / ".last");
+      string line;
+      getline(checked_out_commit, line);
+      array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
+      auto& branch_commit = branch_tokens[0];
+      auto checked_out_index = std::stoi(branch_commit.erase(0, 1));
+
+      if(commit_offset != checked_out_index)
+        cout << art[commit_offset] << "\t" << "  " << commit << " " << message << endl;
+      else
+        cout << art[commit_offset] << "\t" << "← " << commit << " " << message << endl;
+
       commit_offset--;
     }
 
