@@ -106,7 +106,7 @@ class Merge: public Arg {
           const auto &[current_commit_nr, current_date, current_message, parents] = *repo.last_commit_of_branch(current_branch);
 
           stringstream commit_stream;
-          commit_stream << "Merge " << *arg << " into " << current_branch;
+          commit_stream << "Merge " << *arg << " into " << current_commit_nr;
 
           Revision revision(commit_stream.str(), current_commit_nr + "," + *arg);
           revision.write(current_branch);

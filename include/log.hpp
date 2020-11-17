@@ -37,6 +37,8 @@ class Log: public Arg {
         line_stream >> into_identifier;
         line_stream >> branch_b;
 
+        branch_b = *repo.find_branch_for_commit(branch_b);
+
         return optional(make_tuple(branch_a, branch_b));
       } else {
         return nullopt;
