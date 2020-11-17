@@ -2,6 +2,8 @@
 
 #include "repository.hpp"
 #include "arg.h"
+#include "revision.hpp"
+
 #include <sstream>
 #include <iostream>
 #include <filesystem>
@@ -30,7 +32,7 @@ class Checkout: public Arg {
 
       return true;
     } else {
-      if (repo.checkout_commit(*arg))
+      if (Revision::checkout_revision(*arg))
         return true;
     }
 

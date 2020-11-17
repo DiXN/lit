@@ -233,7 +233,6 @@ class Repository: public Singleton<Repository> {
 
     for (auto& p: fs::directory_iterator(root_path())) {
       if (!is_excluded(p)) {
-
         try {
           fs::copy(p, init_path / p.path().filename(), fs::copy_options::recursive);
         } catch(fs::filesystem_error& er) {
@@ -298,83 +297,6 @@ class Repository: public Singleton<Repository> {
     }
 
     return tokens;
-  }
-
-  bool checkout_commit(const string& commit_id, optional<string> branch = nullopt, const string& patch_directory = ".", bool change_branch = true) const {
-    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
-      if(p.path().filename() == ".last" || p.path().filename() == ".total") {
-        continue;
-      }
-
-      cout << "looking for commit in " << p.path().filename() << endl;
-
-      ifstream branch_file;
-
-      if (!branch)
-        branch_file.open(p.path());
-      else
-        branch_file.open(lit_path / "branches" / *branch);
-
-      string commit;
-      string line;
-      vector<string> commits_in_branch;
-
-      while(getline(branch_file, line)) {
-        array<string, 4> tokens = extract_commit_information(line, '|');
-        commit = tokens[0];
-        commits_in_branch.push_back(commit);
-
-        if (commit == commit_id) {
-          if (change_branch) {
-            switch_branch(p.path().filename());
-            ofstream last(lit_path / "branches" / ".last");
-            last << line;
-
-            clean();
-          }
-
-          fs::path path_l;
-          if (patch_directory == ".")
-            path_l = fs::path(root_path());
-          else
-            path_l = fs::path(patch_directory);
-
-          int path_level = 0;
-
-          while(path_l.has_parent_path() && path_l != path_l.root_path()) {
-            path_l = path_l.parent_path();
-            path_level++;
-          }
-
-          for (auto& com : commits_in_branch) {
-            const auto& patch_file = lit_path / "objects" / com;
-
-            if (patch_directory != ".") {
-              auto command = Command("patch")
-                              .arg(string("-s")).arg(string("-p") + to_string(path_level))
-                              .arg(string("-d")).arg(patch_directory)
-                              .arg(string("-i")).arg(patch_file);
-              const auto& [output, status] = command.invoke();
-            } else {
-              auto command = Command("patch")
-                              .arg(string("-s")).arg(string("-p") + to_string(path_level + 1))
-                              .arg(string("-d")).arg(patch_directory)
-                              .arg(string("-i")).arg(patch_file);
-              const auto& [output, status] = command.invoke();
-            }
-          }
-
-          if (change_branch)
-            copy_structure(move("current"));
-
-          return true;
-        }
-      }
-
-      commits_in_branch.clear();
-    }
-
-    return false;
   }
 };
 

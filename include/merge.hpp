@@ -57,12 +57,12 @@ class Merge: public Arg {
         }
 
         const auto& commit_id = *arg;
-        repo.checkout_commit(commit_id, *branch, lit_merge_path, false);
+        Revision::checkout_revision(commit_id, *branch, lit_merge_path, false);
 
         const auto& lit_merge_parent_path = lit_merge_path.parent_path();
         const auto& comparer_path = lit_merge_parent_path / "comparer";
 
-        repo.checkout_commit(*base_of_branches, *branch, comparer_path, false);
+        Revision::checkout_revision(*base_of_branches, *branch, comparer_path, false);
 
         for(const auto &[path, diff_type] : Diff::file_differences(lit_merge_path, comparer_path)) {
           cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
