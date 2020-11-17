@@ -67,7 +67,11 @@ class Merge: public Arg {
           cout << repo.diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
             case Repository::DiffTypes::added:
-              fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
+              if (fs::is_directory(repo.root_path() / path)) {
+                fs::create_directories(lit_merge_path / path);
+              } else {
+                fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
+              }
               break;
             case Repository::DiffTypes::deleted:
               fs::remove_all(repo.root_path() / path);
@@ -78,14 +82,11 @@ class Merge: public Arg {
               const auto& curr_relative = fs::relative(path, repo.root_path());
               const auto& search_path = comparer_path / path;
 
-              cout << "== Comparing: " << curr_relative << " with: " << search_path << endl;
-
               auto command = Command("diff").arg(curr_relative).arg(search_path);
               const auto& [output, status] = command.invoke();
 
               if (status == 1) {
                 potential_conflict = true;
-                cout << "conflict potential!" << endl;
                 fs::copy(lit_merge_path / path, path.string() + "." + *arg);
                 fs::copy(comparer_path / path, path.string() + "." + *base_of_branches);
               } else {
