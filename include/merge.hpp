@@ -112,6 +112,7 @@ class Merge: public Arg {
           revision.write(current_branch);
           const Diff diff(revision.revision());
           diff.save(true);
+          repo.copy_structure(move("current"));
         } else {
           ofstream merge_progress(repo.get_lit_path() / "merge");
           merge_progress << *arg;
