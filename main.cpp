@@ -32,9 +32,16 @@ void print_help(map<string, unique_ptr<Arg>>& args) {
   for (const auto& [name, arg]: args) {
     cout << " " << name << ": " << arg->info().str();
   }
+
+  cout << " help: " << "shows the help for 'lit'." << endl;
 }
 
 bool match_arg(const string& arg, map<string, unique_ptr<Arg>>& args, string cmd_args) {
+  if (arg == "help") {
+    print_help(args);
+    return true;
+  }
+
   const auto match = args.find(arg);
 
   if (match == args.end()) {
