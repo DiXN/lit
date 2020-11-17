@@ -226,15 +226,15 @@ class Repository: public Singleton<Repository> {
   }
 
   void copy_structure(const string&& type) const {
+    auto init_path = lit_path / "state" / type;
+    fs::remove_all(init_path);
+    fs::create_directory(init_path);
+
     for (auto& p: fs::directory_iterator(root_path())) {
       if (!is_excluded(p)) {
-        auto init_path = lit_path / "state" / type;
-
-        fs::remove_all(init_path);
-        fs::create_directory(init_path);
 
         try {
-          fs::copy(p, init_path / fs::relative(p, root_path()));
+          fs::copy(p, init_path / p.path().filename(), fs::copy_options::recursive);
         } catch(fs::filesystem_error& er) {
           cerr << "copy failed: " << er.what() << endl;
         }
@@ -332,7 +332,11 @@ class Repository: public Singleton<Repository> {
             clean();
           }
 
-          fs::path path_l = fs::path(patch_directory);
+          fs::path path_l;
+          if (patch_directory == ".")
+            path_l = fs::path(root_path());
+          else
+            path_l = fs::path(patch_directory);
 
           int path_level = 0;
 
@@ -352,7 +356,7 @@ class Repository: public Singleton<Repository> {
               const auto& [output, status] = command.invoke();
             } else {
               auto command = Command("patch")
-                              .arg(string("-s"))
+                              .arg(string("-s")).arg(string("-p") + to_string(path_level + 1))
                               .arg(string("-d")).arg(patch_directory)
                               .arg(string("-i")).arg(patch_file);
               const auto& [output, status] = command.invoke();
