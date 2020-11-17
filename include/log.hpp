@@ -21,28 +21,20 @@ class Log: public Arg {
 
     const auto& repo = Repository::instance();
 
-    const auto merge_check = [&repo](const string& line) -> optional<tuple<string, string>> {
-      array<string, 4> line_tokens = repo.extract_commit_information(line, '|');
-      auto& line_message = line_tokens[2];
+    const auto merge_check = [&repo](const string& revision_id) -> optional<tuple<string, string>> {
+      Revision revision(revision_id);
+      const auto& parents = revision.parents();
 
-      stringstream line_stream(line_message);
-      string merge_identifier;
-      line_stream >> merge_identifier;
-
-      if (merge_identifier == "Merge") {
-        string branch_a;
-        string branch_b;
-        string into_identifier;
-        line_stream >> branch_a;
-        line_stream >> into_identifier;
-        line_stream >> branch_b;
-
-        branch_b = *repo.find_branch_for_commit(branch_b);
-
-        return optional(make_tuple(branch_a, branch_b));
-      } else {
+      if(!parents)
         return nullopt;
+
+      if ((*parents).size() == 2) {
+        const auto& branch_a = *repo.find_branch_for_commit(revision_id);
+        const auto& branch_b = *repo.find_branch_for_commit((*parents)[1]);
+        return optional(make_tuple(branch_a, branch_b));
       }
+
+      return nullopt;
     };
 
     ifstream branch_file(repo.get_lit_path() / "branches" / ".total");
@@ -113,20 +105,16 @@ class Log: public Arg {
           }
         }
 
-        const auto& merge_line = merge_check(line);
+        const auto& merge_line = merge_check("r" + branch_commit);
 
         if (merge_line) {
           const auto &[branch_a, branch_b] = *merge_line;
-          if(branch_b == branch) {
-            const auto& actual_branch = repo.find_branch_for_commit(branch_a);
+          if(branch_a == branch) {
+            const auto &[other_h_offset, other_c_offset] = branches_to_read_from[branch_b];
+            const auto distance = other_h_offset - h_offset;
 
-            if (actual_branch) {
-              const auto &[other_h_offset, other_c_offset] = branches_to_read_from[*actual_branch];
-              const auto distance = other_h_offset - h_offset;
-
-              for (int i = 0; i < distance * 2 + (other_h_offset - 1); i++) {
-                art[index] += "-";
-              }
+            for (int i = 0; i < distance * 2 + (other_h_offset - 1); i++) {
+              art[index] += "-";
             }
           }
         }
@@ -148,7 +136,7 @@ class Log: public Arg {
         auto search_index = last_index + 1;
 
         if(reverse_lines.size() > search_index && i == search_index) {
-          const auto& merge_line = merge_check(reverse_lines[search_index]);
+          const auto& merge_line = merge_check("r" + to_string(search_index));
 
           if (merge_line) {
             const auto &[branch_a, branch_b] = *merge_line;
