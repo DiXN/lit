@@ -77,6 +77,10 @@ class Revision {
     return _parents;
   }
 
+  string revision() const {
+    return _revision;
+  }
+
   void write(const string& branch) const {
     stringstream new_revision;
     new_revision << _revision << "|" << _date << "|" << _message << "|" << _parents_str << endl;

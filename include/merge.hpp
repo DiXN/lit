@@ -3,6 +3,7 @@
 #include "repository.hpp"
 #include "arg.h"
 #include "revision.hpp"
+#include "diff.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -63,20 +64,20 @@ class Merge: public Arg {
 
         repo.checkout_commit(*base_of_branches, *branch, comparer_path, false);
 
-        for(const auto &[path, diff_type] : repo.file_differences(lit_merge_path, comparer_path)) {
-          cout << repo.diff_types_label[diff_type] << "  " << path << endl;
+        for(const auto &[path, diff_type] : Diff::file_differences(lit_merge_path, comparer_path)) {
+          cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
-            case Repository::DiffTypes::added:
+            case Diff::DiffTypes::added:
               if (fs::is_directory(repo.root_path() / path)) {
                 fs::create_directories(lit_merge_path / path);
               } else {
                 fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
               }
               break;
-            case Repository::DiffTypes::deleted:
+            case Diff::DiffTypes::deleted:
               fs::remove_all(repo.root_path() / path);
               break;
-            case Repository::DiffTypes::modified:
+            case Diff::DiffTypes::modified:
               const auto& lit_temp_path = lit_merge_path.parent_path();
 
               const auto& curr_relative = fs::relative(path, repo.root_path());
@@ -109,6 +110,8 @@ class Merge: public Arg {
 
           Revision revision(commit_stream.str(), current_commit_nr + "," + *arg);
           revision.write(current_branch);
+          const Diff diff(revision.revision());
+          diff.save(true);
         } else {
           ofstream merge_progress(repo.get_lit_path() / "merge");
           merge_progress << *arg;

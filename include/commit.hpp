@@ -3,6 +3,7 @@
 #include "repository.hpp"
 #include "arg.h"
 #include "revision.hpp"
+#include "diff.hpp"
 
 #include <sstream>
 #include <iostream>
@@ -21,9 +22,9 @@ class Commit: public Arg {
 
     const auto& last_commit = repo.last_commit_of_branch(".last");
 
-    fs::path revision_path;
+    string revision_id;
     if (!last_commit) {
-      revision_path = repo.get_lit_path() / "objects" / "r0";
+      revision_id = "r0";
 
       Revision revision(*message, "root", 0);
       revision.write(repo.current_branch());
@@ -32,7 +33,6 @@ class Commit: public Arg {
       repo.copy_structure(move("current"));
     } else {
       const auto& [last_commit_nr, date, commit_message, parents] = *last_commit;
-      int commit_id = repo.unique_commit_id();
       const auto& current_branch = repo.current_branch();
 
       const auto& merge_progress = repo.get_lit_path() / "merge";
@@ -43,11 +43,7 @@ class Commit: public Arg {
         fs::remove(merge_progress);
       }
 
-      Revision revision(*message, last_commit_nr + ss.str(), commit_id);
-
-      stringstream new_revision_file;
-      new_revision_file << "r" << commit_id;
-      revision_path = repo.get_lit_path() / "objects" / new_revision_file.str();
+      Revision revision(*message, last_commit_nr + ss.str());
 
       if (!repo.is_head(last_commit_nr)) {
         repo.create_branch(last_commit_nr);
@@ -57,31 +53,17 @@ class Commit: public Arg {
       } else {
         revision.write(current_branch);
       }
+
+      revision_id = revision.revision();
     }
 
-    ofstream revision;
-    revision.open(revision_path.string(), ofstream::out | ofstream::app);
+    Diff diff(revision_id);
 
-    for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
-      if (!repo.is_excluded(p) && !fs::is_directory(p)) {
+    if (last_commit)
+      diff.save(true);
+    else
+      diff.save(false);
 
-        string comparer = "/dev/null";
-        if (last_commit) {
-          const auto relative_path = fs::relative(p, repo.root_path());
-          const auto previous_path = repo.get_lit_path() / "state" / "current" / relative_path;
-
-          if (fs::exists(previous_path))
-            comparer = previous_path.string();
-        }
-
-        auto command = Command(string("diff")).arg(string("-u")).arg(comparer).arg(p.path());
-
-        const auto& [output, status_code] = command.invoke();
-        revision << output;
-      }
-    }
-
-    revision.close();
     repo.copy_structure(move("current"));
 
     return true;
