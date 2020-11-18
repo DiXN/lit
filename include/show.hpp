@@ -1,15 +1,15 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
-#include <sstream>
-#include <iostream>
+#include "repository.hpp"
 #include <filesystem>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Show: public Arg {
+class Show : public Arg {
   public:
   Show() {}
   bool invoke(const optional<string> arg) const override {
@@ -17,7 +17,7 @@ class Show: public Arg {
     if (!arg) {
       const auto& last_commit = repo.last_commit_of_branch(".last");
 
-      if(!last_commit) {
+      if (!last_commit) {
         cerr << "Cant show last checked out commit, since there is no commit" << endl;
         return false;
       }
@@ -65,4 +65,3 @@ class Show: public Arg {
     return os;
   }
 };
-

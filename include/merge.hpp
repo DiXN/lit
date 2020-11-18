@@ -1,20 +1,20 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
-#include "revision.hpp"
 #include "diff.hpp"
+#include "repository.hpp"
+#include "revision.hpp"
 
-#include <sstream>
-#include <iostream>
-#include <filesystem>
-#include <tuple>
 #include <ctime>
+#include <filesystem>
+#include <iostream>
+#include <sstream>
+#include <tuple>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Merge: public Arg {
+class Merge : public Arg {
   private:
   tuple<bool, fs::path> prepare_merge() const {
     const auto& temp_path = fs::temp_directory_path();
@@ -39,7 +39,7 @@ class Merge: public Arg {
     } else {
       const auto& [temp_path_success, lit_merge_path] = prepare_merge();
 
-      if(!temp_path_success) {
+      if (!temp_path_success) {
         cerr << "Could not create temporary directory, that is necessary for merge" << endl;
         return false;
       }
@@ -48,11 +48,12 @@ class Merge: public Arg {
       const auto& branch = revision.branch();
       bool potential_conflict = false;
 
-      if(branch) {
+      if (branch) {
         const auto& base_of_branches = repo.find_base_commit(repo.current_branch(), *branch);
 
-        if(!base_of_branches) {
-          cerr << "Cannot find common base of branch: \"" << repo.current_branch() << "\" and branch: \"" << *branch << "\"" << endl;
+        if (!base_of_branches) {
+          cerr << "Cannot find common base of branch: \"" << repo.current_branch() << "\" and branch: \"" << *branch
+               << "\"" << endl;
           return false;
         }
 
@@ -64,14 +65,15 @@ class Merge: public Arg {
 
         Revision::checkout_revision(*base_of_branches, *branch, comparer_path, false);
 
-        for(const auto &[path, diff_type] : Diff::file_differences(lit_merge_path, comparer_path)) {
+        for (const auto& [path, diff_type]: Diff::file_differences(lit_merge_path, comparer_path)) {
           cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
             case Diff::DiffTypes::added: {
               if (fs::is_directory(repo.root_path() / path)) {
                 fs::create_directories(lit_merge_path / path);
               } else {
-                fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
+                fs::copy(lit_merge_path / path, repo.root_path() / path,
+                         fs::copy_options::overwrite_existing | fs::copy_options::recursive);
               }
               break;
             }
@@ -93,8 +95,7 @@ class Merge: public Arg {
                 fs::copy(lit_merge_path / path, path.string() + "." + *arg);
                 fs::copy(comparer_path / path, path.string() + "." + *base_of_branches);
               } else {
-                const auto copy_options = fs::copy_options::overwrite_existing
-                                           | fs::copy_options::recursive;
+                const auto copy_options = fs::copy_options::overwrite_existing | fs::copy_options::recursive;
 
                 fs::copy(lit_merge_path / path, repo.root_path() / path, copy_options);
               }
@@ -106,9 +107,10 @@ class Merge: public Arg {
           }
         }
 
-        if(!potential_conflict) {
+        if (!potential_conflict) {
           const auto& current_branch = repo.current_branch();
-          const auto &[current_commit_nr, current_date, current_message, parents] = *repo.last_commit_of_branch(current_branch);
+          const auto& [current_commit_nr, current_date, current_message, parents] =
+              *repo.last_commit_of_branch(current_branch);
 
           stringstream commit_stream;
           commit_stream << "Merge " << *arg << " into " << current_commit_nr;
@@ -134,4 +136,3 @@ class Merge: public Arg {
     return os;
   }
 };
-

@@ -1,20 +1,20 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
-#include "revision.hpp"
 #include "diff.hpp"
+#include "repository.hpp"
+#include "revision.hpp"
 
-#include <sstream>
-#include <iostream>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <optional>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Commit: public Arg {
+class Commit : public Arg {
   public:
   Commit() {}
   bool invoke(const optional<string> message) const override {
@@ -69,11 +69,9 @@ class Commit: public Arg {
     return true;
   }
 
-
   ostringstream info() const override {
     ostringstream os;
     os << "Creates a commit." << endl;
     return os;
   }
 };
-

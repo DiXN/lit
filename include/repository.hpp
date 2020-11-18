@@ -2,24 +2,25 @@
 
 #include "singleton.h"
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
-#include <sstream>
 #include <iostream>
-#include <optional>
-#include <string>
-#include <algorithm>
-#include <tuple>
 #include <map>
+#include <optional>
+#include <sstream>
+#include <string>
+#include <tuple>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Repository: public Singleton<Repository> {
+class Repository : public Singleton<Repository> {
   private:
   fs::path lit_path;
+
   public:
-  Repository(const fs::path lit_path = fs::current_path() / ".lit") : lit_path(lit_path) { }
+  Repository(const fs::path lit_path = fs::current_path() / ".lit") : lit_path(lit_path) {}
 
   void initialize() const {
     const auto ref_path = lit_path / "ref";
@@ -48,19 +49,15 @@ class Repository: public Singleton<Repository> {
     }
   }
 
-  fs::path get_lit_path() const {
-    return lit_path;
-  }
+  fs::path get_lit_path() const { return lit_path; }
 
-  fs::path root_path() const {
-    return lit_path.parent_path();
-  }
+  fs::path root_path() const { return lit_path.parent_path(); }
 
   bool is_excluded(fs::path path) const {
     const auto& git_path = root_path() / ".git";
 
     if (search(path.begin(), path.end(), git_path.begin(), git_path.end()) != path.end() ||
-          search(path.begin(), path.end(), lit_path.begin(), lit_path.end()) != path.end()) {
+        search(path.begin(), path.end(), lit_path.begin(), lit_path.end()) != path.end()) {
       return true;
     } else {
       return false;
@@ -71,7 +68,7 @@ class Repository: public Singleton<Repository> {
     const auto branch_ref_path = lit_path / "ref";
 
     fs::path current_branch;
-    for(auto& branch_ref: fs::directory_iterator(branch_ref_path)) {
+    for (auto& branch_ref: fs::directory_iterator(branch_ref_path)) {
       current_branch = fs::relative(branch_ref, branch_ref_path);
       break;
     }
@@ -79,9 +76,7 @@ class Repository: public Singleton<Repository> {
     return current_branch.string();
   }
 
-  void create_branch(const string& branch) const {
-    ofstream new_branch(lit_path / "branches" / branch);
-  }
+  void create_branch(const string& branch) const { ofstream new_branch(lit_path / "branches" / branch); }
 
   void switch_branch(const string& branch) const {
     const auto& branch_ref_root = lit_path / "ref";
@@ -98,7 +93,7 @@ class Repository: public Singleton<Repository> {
     string commit;
     string line;
 
-    while(getline(branch_file, line)) {
+    while (getline(branch_file, line)) {
       array<string, 4> tokens = extract_commit_information(line, '|');
       commit = tokens[0];
 
@@ -113,11 +108,11 @@ class Repository: public Singleton<Repository> {
   bool is_head(const string& last_commit_nr) const {
     const auto& last_commit = last_commit_of_branch(current_branch());
 
-    if(!last_commit) {
+    if (!last_commit) {
       return false;
     }
 
-    const auto &[current_commit_nr, current_date, current_message, parents] = *last_commit;
+    const auto& [current_commit_nr, current_date, current_message, parents] = *last_commit;
 
     if (current_commit_nr != last_commit_nr) {
       return false;
@@ -137,7 +132,7 @@ class Repository: public Singleton<Repository> {
     string line;
     string parents;
 
-    while(getline(branch_file, line)) {
+    while (getline(branch_file, line)) {
       array<string, 4> tokens = extract_commit_information(line, '|');
       commit = tokens[0];
       time = tokens[1];
@@ -159,12 +154,12 @@ class Repository: public Singleton<Repository> {
     const auto token_position = parents.find_first_of(",");
 
     if (token_position == string::npos)
-      return optional(vector { parents });
+      return optional(vector{parents});
 
     const auto first_parent = parents.substr(0, token_position);
     const auto second_parent = parents.substr(token_position + 1, parents.length());
 
-    return optional(vector { first_parent, second_parent });
+    return optional(vector{first_parent, second_parent});
   }
 
   void copy_structure(const string&& type) const {
@@ -176,7 +171,7 @@ class Repository: public Singleton<Repository> {
       if (!is_excluded(p)) {
         try {
           fs::copy(p, init_path / p.path().filename(), fs::copy_options::recursive);
-        } catch(fs::filesystem_error& er) {
+        } catch (fs::filesystem_error& er) {
           cerr << "copy failed: " << er.what() << endl;
         }
       }
@@ -202,22 +197,22 @@ class Repository: public Singleton<Repository> {
     vector<optional<vector<string>>> branch_a_lines;
     vector<optional<vector<string>>> branch_b_lines;
 
-    while(getline(branch_a_file, branch_a_line)) {
+    while (getline(branch_a_file, branch_a_line)) {
       array<string, 4> tokens = extract_commit_information(branch_a_line, '|');
       const auto& parents = extract_parents(tokens[3]);
       branch_a_lines.push_back(parents);
     }
 
-    while(getline(branch_b_file, branch_b_line)) {
+    while (getline(branch_b_file, branch_b_line)) {
       array<string, 4> tokens = extract_commit_information(branch_b_line, '|');
       const auto& parents = extract_parents(tokens[3]);
       branch_b_lines.push_back(parents);
     }
 
-    for(auto it_a = branch_a_lines.rbegin(); it_a != branch_a_lines.rend(); ++it_a) {
-      for(auto it_b = branch_b_lines.rbegin(); it_b != branch_b_lines.rend(); ++it_b) {
-        if(*it_a && *it_b) {
-          for(const auto& elem : **it_a) {
+    for (auto it_a = branch_a_lines.rbegin(); it_a != branch_a_lines.rend(); ++it_a) {
+      for (auto it_b = branch_b_lines.rbegin(); it_b != branch_b_lines.rend(); ++it_b) {
+        if (*it_a && *it_b) {
+          for (const auto& elem: **it_a) {
             if (std::find((**it_b).cbegin(), (**it_b).cend(), elem) != (**it_b).cend())
               return optional(elem);
           }
@@ -233,11 +228,10 @@ class Repository: public Singleton<Repository> {
     stringstream line_stream(line);
     string token;
 
-    for(int i = 0; getline(line_stream, token, delim); i++) {
+    for (int i = 0; getline(line_stream, token, delim); i++) {
       tokens[i] = token;
     }
 
     return tokens;
   }
 };
-

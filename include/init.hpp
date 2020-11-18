@@ -1,15 +1,15 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
-#include <sstream>
-#include <iostream>
+#include "repository.hpp"
 #include <filesystem>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Init: public Arg {
+class Init : public Arg {
   public:
   Init() {}
   bool invoke(const optional<string> arg) const override {
@@ -37,4 +37,3 @@ class Init: public Arg {
     return os;
   }
 };
-

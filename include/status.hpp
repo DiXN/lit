@@ -1,17 +1,17 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
 #include "diff.hpp"
+#include "repository.hpp"
 
-#include <sstream>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Status: public Arg {
+class Status : public Arg {
   public:
   Status() {}
   bool invoke(const optional<string> arg) const override {
@@ -30,7 +30,8 @@ class Status: public Arg {
         }
       }
     } else {
-      for(const auto &[path, diff_type] : Diff::file_differences(repo.root_path(), repo.get_lit_path() / "state" / "current")) {
+      for (const auto& [path, diff_type]:
+           Diff::file_differences(repo.root_path(), repo.get_lit_path() / "state" / "current")) {
         cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
       }
     }
@@ -44,4 +45,3 @@ class Status: public Arg {
     return os;
   }
 };
-

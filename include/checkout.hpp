@@ -1,18 +1,18 @@
 #pragma once
 
-#include "repository.hpp"
 #include "arg.h"
+#include "repository.hpp"
 #include "revision.hpp"
 
-#include <sstream>
-#include <iostream>
 #include <filesystem>
+#include <iostream>
 #include <optional>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
 
-class Checkout: public Arg {
+class Checkout : public Arg {
   public:
   Checkout() {}
   bool invoke(const optional<string> arg) const override {
@@ -21,8 +21,7 @@ class Checkout: public Arg {
     if (!arg) {
       repo.clean();
 
-      const auto copy_options = fs::copy_options::overwrite_existing
-                              | fs::copy_options::recursive;
+      const auto copy_options = fs::copy_options::overwrite_existing | fs::copy_options::recursive;
 
       const auto previous_files = repo.get_lit_path() / "state" / "current";
 
@@ -46,4 +45,3 @@ class Checkout: public Arg {
     return os;
   }
 };
-

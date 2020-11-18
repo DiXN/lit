@@ -1,18 +1,18 @@
-#include "command.h"
 #include "arg.h"
-#include "init.hpp"
-#include "commit.hpp"
-#include "status.hpp"
 #include "checkout.hpp"
-#include "merge.hpp"
+#include "command.h"
+#include "commit.hpp"
+#include "init.hpp"
 #include "log.hpp"
+#include "merge.hpp"
 #include "show.hpp"
+#include "status.hpp"
 
 #include <iostream>
-#include <memory>
 #include <map>
-#include <string>
+#include <memory>
 #include <numeric>
+#include <string>
 
 map<string, unique_ptr<Arg>> init_arg_register() {
   map<string, unique_ptr<Arg>> args;
@@ -33,7 +33,8 @@ void print_help(map<string, unique_ptr<Arg>>& args) {
     cout << " " << name << ": " << arg->info().str();
   }
 
-  cout << " help: " << "shows the help for 'lit'." << endl;
+  cout << " help: "
+       << "shows the help for 'lit'." << endl;
 }
 
 bool match_arg(const string& arg, map<string, unique_ptr<Arg>>& args, string cmd_args) {
@@ -59,7 +60,6 @@ bool match_arg(const string& arg, map<string, unique_ptr<Arg>>& args, string cmd
   return args[arg]->invoke(move(optional_cmd_args));
 }
 
-
 int main(int argc, char** argv) {
   auto args = init_arg_register();
 
@@ -68,9 +68,8 @@ int main(int argc, char** argv) {
     return 0;
   }
 
-  const auto& cmd_args =
-      std::accumulate(argv + 2, argv + argc, string(""),
-          [](const string& a, string b) { return a + (!a.empty() ? " " : "") + b; });
+  const auto& cmd_args = std::accumulate(argv + 2, argv + argc, string(""),
+                                         [](const string& a, string b) { return a + (!a.empty() ? " " : "") + b; });
 
   if (!match_arg(argv[1], args, move(cmd_args))) {
     return 1;
@@ -78,4 +77,3 @@ int main(int argc, char** argv) {
 
   return 0;
 }
-

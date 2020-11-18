@@ -2,10 +2,10 @@
 
 #include "repository.hpp"
 
-#include <sstream>
-#include <iostream>
-#include <filesystem>
 #include <ctime>
+#include <filesystem>
+#include <iostream>
+#include <sstream>
 
 using namespace std;
 namespace fs = std::filesystem;
@@ -24,7 +24,6 @@ class Diff {
 
     for (auto& p: fs::recursive_directory_iterator(repo.root_path())) {
       if (!repo.is_excluded(p) && !fs::is_directory(p)) {
-
         string comparer = "/dev/null";
         if (has_previous_commit) {
           const auto relative_path = fs::relative(p, repo.root_path());
@@ -42,22 +41,11 @@ class Diff {
     }
   }
 
-  enum DiffTypes {
-    modified,
-    deleted,
-    added,
-    none
-  };
+  enum DiffTypes { modified, deleted, added, none };
 
-  static constexpr array<char, 4> diff_types_label {
-    'M',
-    'D',
-    'A',
-    '\0'
-  };
+  static constexpr array<char, 4> diff_types_label{'M', 'D', 'A', '\0'};
 
   static map<fs::path, DiffTypes> file_differences(fs::path init_path, fs::path compare_path) {
-
     const Repository& repo = Repository::instance();
     vector<fs::path> deleted_paths;
     map<fs::path, DiffTypes> file_diffs;
@@ -66,7 +54,7 @@ class Diff {
       const auto& curr_relative = fs::relative(p, compare_path);
       const auto& search_path = init_path / curr_relative;
 
-      if(!fs::exists(search_path)) {
+      if (!fs::exists(search_path)) {
         file_diffs.emplace(curr_relative, DiffTypes::deleted);
         deleted_paths.push_back(p);
       }
@@ -77,7 +65,7 @@ class Diff {
         const auto& curr_relative = fs::relative(p, init_path);
         const auto& search_path = compare_path / curr_relative;
 
-        if(!fs::exists(search_path)) {
+        if (!fs::exists(search_path)) {
           file_diffs.emplace(curr_relative, DiffTypes::added);
         } else if (find(deleted_paths.begin(), deleted_paths.end(), p) == deleted_paths.end()) {
           auto command = Command("diff").arg(init_path / curr_relative).arg(search_path);

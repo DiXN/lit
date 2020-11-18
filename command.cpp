@@ -1,16 +1,15 @@
 #include "command.h"
 #include <iostream>
-#include <sstream>
-#include <ostream>
 #include <numeric>
+#include <ostream>
+#include <sstream>
 
-Command::Command(const string command): command(std::move(command)) {}
+Command::Command(const string command) : command(std::move(command)) {}
 
 Command& Command::arg(const string arg) {
   args.push_back(std::move(arg));
   return *this;
 }
-
 
 Command& Command::arg(const fs::path& arg) {
   args.push_back((arg.string()));
@@ -31,7 +30,9 @@ tuple<string, int> Command::invoke() {
 
   ostringstream oss;
 
-  oss << "sh -c " << "\"" << cmd << "\"" << " 2>&1";
+  oss << "sh -c "
+      << "\"" << cmd << "\""
+      << " 2>&1";
 
   array<char, 128> buffer;
 
@@ -49,10 +50,9 @@ tuple<string, int> Command::invoke() {
 
   auto exit_code = pclose(pipe);
 
-  if(exit_code == -1) {
+  if (exit_code == -1) {
     throw runtime_error("pclose failure");
   }
 
   return make_tuple(output.str(), WEXITSTATUS(exit_code));
 }
-

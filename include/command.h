@@ -1,8 +1,10 @@
+#pragma once
+
+#include <filesystem>
 #include <iostream>
 #include <string>
-#include <vector>
 #include <tuple>
-#include <filesystem>
+#include <vector>
 
 namespace fs = std::filesystem;
 
