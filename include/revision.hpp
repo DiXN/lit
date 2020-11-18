@@ -212,4 +212,3 @@ class Revision {
 };
 
 }; // namespace lit
-

@@ -59,4 +59,3 @@ tuple<string, int> Command::invoke() {
 }
 
 }; // namespace lit
-

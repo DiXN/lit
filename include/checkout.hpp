@@ -45,4 +45,3 @@ class Checkout : public Arg {
 };
 
 }; // namespace lit
-

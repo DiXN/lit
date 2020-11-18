@@ -46,4 +46,3 @@ class Status : public Arg {
 };
 
 }; // namespace lit
-
