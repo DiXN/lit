@@ -35,13 +35,13 @@ class Checkout : public Arg {
         return true;
     }
 
-    cerr << "commit could not be found." << endl;
+    cerr << "Revision could not be found." << endl;
     return false;
   }
 
   ostringstream info() const override {
     ostringstream os;
-    os << "Switches branch to the specified commit." << endl;
+    os << "Switches to the specified \"lit\" revision." << endl;
     return os;
   }
 };

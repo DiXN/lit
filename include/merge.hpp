@@ -34,13 +34,13 @@ class Merge : public Arg {
     const auto& repo = Repository::instance();
 
     if (!arg) {
-      cerr << "On command 'lit merge' an argument is required" << endl;
+      cerr << "On command 'lit merge' an argument is required." << endl;
       return false;
     } else {
       const auto& [temp_path_success, lit_merge_path] = prepare_merge();
 
       if (!temp_path_success) {
-        cerr << "Could not create temporary directory, that is necessary for merge" << endl;
+        cerr << "Could not create temporary directory, which is necessary for the merge process." << endl;
         return false;
       }
 
@@ -53,9 +53,10 @@ class Merge : public Arg {
 
         if (!base_of_branches) {
           cerr << "Cannot find common base of branch: \"" << repo.current_branch() << "\" and branch: \"" << *branch
-               << "\"" << endl;
+               << "\"." << endl;
           return false;
         }
+        const auto copy_options = fs::copy_options::overwrite_existing | fs::copy_options::recursive;
 
         const auto& commit_id = *arg;
         Revision::checkout_revision(commit_id, *branch, lit_merge_path, false);
@@ -72,8 +73,7 @@ class Merge : public Arg {
               if (fs::is_directory(repo.root_path() / path)) {
                 fs::create_directories(lit_merge_path / path);
               } else {
-                fs::copy(lit_merge_path / path, repo.root_path() / path,
-                         fs::copy_options::overwrite_existing | fs::copy_options::recursive);
+                fs::copy(lit_merge_path / path, repo.root_path() / path, copy_options);
               }
               break;
             }
@@ -95,8 +95,6 @@ class Merge : public Arg {
                 fs::copy(lit_merge_path / path, path.string() + "." + *arg);
                 fs::copy(comparer_path / path, path.string() + "." + *base_of_branches);
               } else {
-                const auto copy_options = fs::copy_options::overwrite_existing | fs::copy_options::recursive;
-
                 fs::copy(lit_merge_path / path, repo.root_path() / path, copy_options);
               }
 

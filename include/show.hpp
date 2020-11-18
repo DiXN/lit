@@ -61,7 +61,7 @@ class Show : public Arg {
 
   ostringstream info() const override {
     ostringstream os;
-    os << "Shows information of the specified commit." << endl;
+    os << "Shows information of the specified \"lit\" commit." << endl;
     return os;
   }
 };

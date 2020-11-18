@@ -16,7 +16,7 @@ class Status : public Arg {
   Status() {}
   bool invoke(const optional<string> arg) const override {
     if (arg) {
-      cerr << "On command 'lit status' no argument is allowed" << endl;
+      cerr << "On command 'lit status' no argument is allowed." << endl;
       return false;
     }
 

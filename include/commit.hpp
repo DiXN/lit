@@ -71,7 +71,7 @@ class Commit : public Arg {
 
   ostringstream info() const override {
     ostringstream os;
-    os << "Creates a commit." << endl;
+    os << "Creates a \"lit\" commit." << endl;
     return os;
   }
 };
