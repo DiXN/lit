@@ -47,14 +47,14 @@ class Log: public Arg {
     string line;
 
     vector<string> reverse_lines;
-    map<string, tuple<int, int>> branches_to_read_from;
+    map<string, tuple<size_t, size_t>> branches_to_read_from;
 
     while(getline(branch_file, line)) {
       reverse_lines.push_back(line);
     }
 
     int horizontal_offset = 0;
-    int commit_offset = 0;
+    size_t commit_offset = 0;
     for (auto& l : reverse_lines) {
       array<string, 4> tokens = repo.extract_commit_information(l, '|');
       commit = tokens[0];
@@ -73,19 +73,19 @@ class Log: public Arg {
     }
 
     vector<string> art(reverse_lines.size(), "");
-    vector<int> commit_indices;
+    vector<size_t> commit_indices;
 
     for (const auto &[branch, offset]: branches_to_read_from) {
       auto &[h_offset, c_offset] = offset;
 
       ifstream branch_file(repo.get_lit_path() / "branches" / branch);
 
-      int last_index = 0;
+      size_t last_index = 0;
       while(getline(branch_file, line)) {
         array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
         auto& branch_commit = branch_tokens[0];
 
-        int index = std::stoi(branch_commit.erase(0, 1));
+        size_t index = std::stoi(branch_commit.erase(0, 1));
         commit_indices.push_back(index);
 
         if(index >= c_offset) {
@@ -115,7 +115,7 @@ class Log: public Arg {
             const auto &[other_h_offset, other_c_offset] = branches_to_read_from[branch_b];
             const auto distance = other_h_offset - h_offset;
 
-            for (int i = 0; i < distance * 2 + (other_h_offset - 1); i++) {
+            for (size_t i = 0; i < distance * 2 + (other_h_offset - 1); i++) {
               art[index] += "-";
             }
           }
@@ -141,7 +141,6 @@ class Log: public Arg {
           const auto& merge_line = merge_check("r" + to_string(search_index));
 
           if (merge_line) {
-            const auto &[branch_a, branch_b] = *merge_line;
             if (art[i][art[i].size() - 1] == '-') {
               art[i] += "¬";
             } else {
@@ -169,7 +168,7 @@ class Log: public Arg {
       getline(checked_out_commit, line);
       array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
       auto& branch_commit = branch_tokens[0];
-      auto checked_out_index = std::stoi(branch_commit.erase(0, 1));
+      size_t checked_out_index = std::stoi(branch_commit.erase(0, 1));
 
       if(commit_offset != checked_out_index)
         cout << art[commit_offset] << "\t" << "  " << commit << " " << message << endl;

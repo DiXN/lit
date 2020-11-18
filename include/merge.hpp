@@ -67,17 +67,19 @@ class Merge: public Arg {
         for(const auto &[path, diff_type] : Diff::file_differences(lit_merge_path, comparer_path)) {
           cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
-            case Diff::DiffTypes::added:
+            case Diff::DiffTypes::added: {
               if (fs::is_directory(repo.root_path() / path)) {
                 fs::create_directories(lit_merge_path / path);
               } else {
                 fs::copy(lit_merge_path / path, repo.root_path() / path, fs::copy_options::overwrite_existing|fs::copy_options::recursive);
               }
               break;
-            case Diff::DiffTypes::deleted:
+            }
+            case Diff::DiffTypes::deleted: {
               fs::remove_all(repo.root_path() / path);
               break;
-            case Diff::DiffTypes::modified:
+            }
+            case Diff::DiffTypes::modified: {
               const auto& lit_temp_path = lit_merge_path.parent_path();
 
               const auto& curr_relative = fs::relative(path, repo.root_path());
@@ -97,6 +99,9 @@ class Merge: public Arg {
                 fs::copy(lit_merge_path / path, repo.root_path() / path, copy_options);
               }
 
+              break;
+            }
+            default:
               break;
           }
         }
