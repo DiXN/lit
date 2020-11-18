@@ -29,8 +29,10 @@ class Log: public Arg {
         return nullopt;
 
       if ((*parents).size() == 2) {
-        const auto& branch_a = *repo.find_branch_for_commit(revision_id);
-        const auto& branch_b = *repo.find_branch_for_commit((*parents)[1]);
+        const auto& branch_a = *revision.branch();
+
+        Revision parent_revision((*parents)[1]);
+        const auto& branch_b = *parent_revision.branch();
         return optional(make_tuple(branch_a, branch_b));
       }
 

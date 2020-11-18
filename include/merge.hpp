@@ -44,8 +44,8 @@ class Merge: public Arg {
         return false;
       }
 
-
-      const auto& branch = repo.find_branch_for_commit(*arg);
+      Revision revision(*arg);
+      const auto& branch = revision.branch();
       bool potential_conflict = false;
 
       if(branch) {

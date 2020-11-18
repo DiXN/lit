@@ -128,22 +128,6 @@ class Repository: public Singleton<Repository> {
     return ++prev_rev_number;
   }
 
-  void write_commit(const string& branch, const stringstream& ss) const {
-    ofstream commit;
-    commit.open(lit_path / "branches" / branch, ofstream::out | ofstream::app);
-    commit << ss.str();
-    commit.close();
-
-    ofstream last(lit_path / "branches" / ".last");
-    last << ss.str();
-    last.close();
-
-    ofstream total;
-    total.open(lit_path / "branches" / ".total", ofstream::out | ofstream::app);
-    total << ss.str();
-    total.close();
-  }
-
   bool is_head(const string& last_commit_nr) const {
     const auto& last_commit = last_commit_of_branch(current_branch());
 
@@ -199,31 +183,6 @@ class Repository: public Singleton<Repository> {
     const auto second_parent = parents.substr(token_position + 1, parents.length());
 
     return optional(vector { first_parent, second_parent });
-  }
-
-  optional<string> find_branch_for_commit(const string& commit) const {
-    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
-      const auto file_name = p.path().filename();
-
-      if (file_name == ".total" || file_name == ".last")
-        continue;
-
-      ifstream branch_file(lit_path / "branches" / file_name);
-
-      string line;
-      string branch_commit;
-
-      while(getline(branch_file, line)) {
-        array<string, 4> tokens = extract_commit_information(line, '|');
-        branch_commit = tokens[0];
-
-        if(branch_commit == commit) {
-          return optional<string>(file_name);
-        }
-      }
-    }
-
-    return nullopt;
   }
 
   void copy_structure(const string&& type) const {

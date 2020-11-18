@@ -11,13 +11,46 @@ using namespace std;
 
 class Revision {
   private:
-    string _revision;
-    string _message;
-    string _date;
-    optional<vector<string>> _parents;
-    string _parents_str;
+  string _revision;
+  string _message;
+  string _date;
+  optional<vector<string>> _parents;
+  string _parents_str;
 
-    const Repository& repo = Repository::instance();
+  const Repository& repo = Repository::instance();
+
+  int unique_commit_id() const {
+    const auto& last_commit = repo.last_commit_of_branch(".total");
+
+    if (!last_commit) {
+      return 0;
+    }
+
+    const auto& [last_commit_nr, date, message, parents] = *last_commit;
+
+    stringstream prev_revision(last_commit_nr);
+    char prev_rev;
+    int prev_rev_number;
+    prev_revision >> prev_rev;
+    prev_revision >> prev_rev_number;
+
+    return ++prev_rev_number;
+  }
+
+  void write_commit(const string& branch, const stringstream& ss) const {
+    const auto& lit_path = repo.get_lit_path();
+
+    ofstream commit;
+    commit.open(lit_path / "branches" / branch, ofstream::out | ofstream::app);
+    commit << ss.str();
+
+    ofstream last(lit_path / "branches" / ".last");
+    last << ss.str();
+
+    ofstream total;
+    total.open(lit_path / "branches" / ".total", ofstream::out | ofstream::app);
+    total << ss.str();
+  }
 
   public:
   Revision(const string& revision) {
@@ -81,10 +114,34 @@ class Revision {
     return _revision;
   }
 
+  optional<string> branch() const {
+    const auto& lit_path = repo.get_lit_path();
+    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
+      const auto file_name = p.path().filename();
+
+      if (file_name == ".total" || file_name == ".last")
+        continue;
+
+      ifstream branch_file(lit_path / "branches" / file_name);
+
+      string line;
+      while(getline(branch_file, line)) {
+        array<string, 4> tokens = repo.extract_commit_information(line, '|');
+        auto& branch_commit = tokens[0];
+
+        if(branch_commit == _revision) {
+          return optional<string>(file_name);
+        }
+      }
+    }
+
+    return nullopt;
+  }
+
   void write(const string& branch) const {
     stringstream new_revision;
     new_revision << _revision << "|" << _date << "|" << _message << "|" << _parents_str << endl;
-    repo.write_commit(branch, new_revision);
+    write_commit(branch, new_revision);
   }
 
   static bool checkout_revision(const string& commit_id, optional<string> branch = nullopt, const string& patch_directory = ".", bool change_branch = true)  {
@@ -139,19 +196,12 @@ class Revision {
           for (auto& com : commits_in_branch) {
             const auto& patch_file = repo.get_lit_path() / "objects" / com;
 
-            if (patch_directory != ".") {
-              auto command = Command("patch")
-                              .arg(string("-s")).arg(string("-p") + to_string(path_level))
-                              .arg(string("-d")).arg(patch_directory)
-                              .arg(string("-i")).arg(patch_file);
-              const auto& [output, status] = command.invoke();
-            } else {
-              auto command = Command("patch")
-                              .arg(string("-s")).arg(string("-p") + to_string(path_level + 1))
-                              .arg(string("-d")).arg(patch_directory)
-                              .arg(string("-i")).arg(patch_file);
-              const auto& [output, status] = command.invoke();
-            }
+            auto command = Command("patch")
+                            .arg(string("-s"))
+                            .arg(string("-p") + to_string(patch_directory == "." ? path_level : path_level + 1))
+                            .arg(string("-d")).arg(patch_directory)
+                            .arg(string("-i")).arg(patch_file);
+            const auto& [output, status] = command.invoke();
           }
 
           if (change_branch)
