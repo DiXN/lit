@@ -1,12 +1,14 @@
 #pragma once
 
-#include "repository.hpp"
 #include "command.h"
+#include "repository.hpp"
 
 #include <ctime>
 #include <filesystem>
 #include <iostream>
 #include <sstream>
+
+namespace lit {
 
 using namespace std;
 
@@ -211,3 +213,5 @@ class Revision {
     return false;
   }
 };
+
+}; // namespace lit

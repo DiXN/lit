@@ -6,6 +6,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -37,3 +39,5 @@ class Init : public Arg {
     return os;
   }
 };
+
+}; // namespace lit

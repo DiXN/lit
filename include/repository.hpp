@@ -12,6 +12,8 @@
 #include <string>
 #include <tuple>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -235,3 +237,5 @@ class Repository : public Singleton<Repository> {
     return tokens;
   }
 };
+
+}; // namespace lit

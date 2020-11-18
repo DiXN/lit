@@ -6,6 +6,8 @@
 #include <sstream>
 #include <vector>
 
+namespace lit {
+
 using namespace std;
 
 class Arg {
@@ -13,3 +15,5 @@ class Arg {
   virtual bool invoke(const optional<string> arg = nullopt) const = 0;
   virtual ostringstream info() const = 0;
 };
+
+}; // namespace lit

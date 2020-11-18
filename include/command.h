@@ -6,6 +6,8 @@
 #include <tuple>
 #include <vector>
 
+namespace lit {
+
 namespace fs = std::filesystem;
 
 using namespace std;
@@ -22,3 +24,5 @@ class Command {
   vector<string> args;
   const string command;
 };
+
+}; // namespace lit

@@ -8,6 +8,8 @@
 #include <iostream>
 #include <sstream>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -45,3 +47,5 @@ class Status : public Arg {
     return os;
   }
 };
+
+}; // namespace lit

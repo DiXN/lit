@@ -7,6 +7,8 @@
 #include <sstream>
 #include <tuple>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -191,3 +193,5 @@ class Log : public Arg {
     return os;
   }
 };
+
+}; // namespace lit

@@ -14,6 +14,8 @@
 #include <numeric>
 #include <string>
 
+using namespace lit;
+
 map<string, unique_ptr<Arg>> init_arg_register() {
   map<string, unique_ptr<Arg>> args;
   args.emplace("init", make_unique<Init>());

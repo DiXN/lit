@@ -11,6 +11,8 @@
 #include <sstream>
 #include <tuple>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -134,3 +136,5 @@ class Merge : public Arg {
     return os;
   }
 };
+
+}; // namespace lit

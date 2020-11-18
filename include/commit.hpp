@@ -11,6 +11,8 @@
 #include <optional>
 #include <sstream>
 
+namespace lit {
+
 using namespace std;
 namespace fs = std::filesystem;
 
@@ -71,7 +73,9 @@ class Commit : public Arg {
 
   ostringstream info() const override {
     ostringstream os;
-    os << "Creates a \"lit\" commit." << endl;
+    os << "Creates a \"lit\" commit.." << endl;
     return os;
   }
 };
+
+}; // namespace lit

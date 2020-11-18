@@ -4,6 +4,8 @@
 #include <ostream>
 #include <sstream>
 
+namespace lit {
+
 Command::Command(const string command) : command(std::move(command)) {}
 
 Command& Command::arg(const string arg) {
@@ -56,3 +58,5 @@ tuple<string, int> Command::invoke() {
 
   return make_tuple(output.str(), WEXITSTATUS(exit_code));
 }
+
+}; // namespace lit
