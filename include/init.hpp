@@ -24,10 +24,10 @@ class Init : public Arg {
     const auto& repo = Repository::instance();
 
     if (repo.exists())
-      cout << "repository is already initialized." << endl;
+      cout << "Repository is already initialized." << endl;
     else {
       repo.initialize();
-      cout << "repository is initialzed." << endl;
+      cout << "Repository is initialzed." << endl;
     }
 
     return true;

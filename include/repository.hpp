@@ -30,7 +30,6 @@ class Repository : public Singleton<Repository> {
     const auto object_path = lit_path / "objects";
     const auto branch_path = lit_path / "branches";
     const auto state_path = lit_path / "state";
-    const auto init_state_path = lit_path / "state" / "init";
     const auto current_state_path = lit_path / "state" / "current";
     fs::create_directory(lit_path);
     fs::create_directory(ref_path);
@@ -38,7 +37,6 @@ class Repository : public Singleton<Repository> {
     fs::create_directory(object_path);
     fs::create_directory(branch_path);
     fs::create_directory(state_path);
-    fs::create_directory(init_state_path);
     fs::create_directory(current_state_path);
     ofstream total(branch_path / ".total");
   };
@@ -169,7 +167,7 @@ class Repository : public Singleton<Repository> {
     fs::remove_all(init_path);
     fs::create_directory(init_path);
 
-    for (auto& p: fs::directory_iterator(root_path())) {
+    for (const auto& p: fs::directory_iterator(root_path())) {
       if (!is_excluded(p)) {
         try {
           fs::copy(p, init_path / p.path().filename(), fs::copy_options::recursive);

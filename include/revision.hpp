@@ -111,8 +111,8 @@ class Revision {
 
   optional<string> branch() const {
     const auto& lit_path = repo.get_lit_path();
-    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
-      const auto file_name = p.path().filename();
+    for (const auto& branch: fs::directory_iterator(lit_path / "branches")) {
+      const auto file_name = branch.path().filename();
 
       if (file_name == ".total" || file_name == ".last")
         continue;
@@ -144,15 +144,16 @@ class Revision {
     const auto& repo = Repository::instance();
     const auto lit_path = repo.get_lit_path();
 
-    for (auto& p: fs::directory_iterator(lit_path / "branches")) {
-      if (p.path().filename() == ".last" || p.path().filename() == ".total") {
+    for (const auto& b: fs::directory_iterator(lit_path / "branches")) {
+      const auto& branch_file_name = b.path().filename();
+      if (branch_file_name == ".last" || branch_file_name == ".total") {
         continue;
       }
 
       ifstream branch_file;
 
       if (!branch)
-        branch_file.open(p.path());
+        branch_file.open(b.path());
       else
         branch_file.open(lit_path / "branches" / *branch);
 
@@ -167,7 +168,7 @@ class Revision {
 
         if (commit == commit_id) {
           if (change_branch) {
-            repo.switch_branch(p.path().filename());
+            repo.switch_branch(branch_file_name);
             ofstream last(lit_path / "branches" / ".last");
             last << line;
 

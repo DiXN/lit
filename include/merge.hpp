@@ -69,7 +69,6 @@ class Merge : public Arg {
         Revision::checkout_revision(*base_of_branches, *branch, comparer_path, false);
 
         for (const auto& [path, diff_type]: Diff::file_differences(lit_merge_path, comparer_path)) {
-          cout << Diff::diff_types_label[diff_type] << "  " << path << endl;
           switch (diff_type) {
             case Diff::DiffTypes::added: {
               if (fs::is_directory(repo.root_path() / path)) {

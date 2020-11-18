@@ -31,7 +31,6 @@ class Commit : public Arg {
       Revision revision(*message, "root", 0);
       revision.write(repo.current_branch());
 
-      repo.copy_structure(move("init"));
       repo.copy_structure(move("current"));
     } else {
       const auto& [last_commit_nr, date, commit_message, parents] = *last_commit;
