@@ -1,8 +1,7 @@
 #include "command.h"
+
 #include <iostream>
 #include <numeric>
-#include <ostream>
-#include <sstream>
 
 namespace lit {
 
@@ -60,3 +59,4 @@ tuple<string, int> Command::invoke() {
 }
 
 }; // namespace lit
+

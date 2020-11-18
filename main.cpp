@@ -8,11 +8,7 @@
 #include "show.hpp"
 #include "status.hpp"
 
-#include <iostream>
-#include <map>
-#include <memory>
 #include <numeric>
-#include <string>
 
 using namespace lit;
 
@@ -79,3 +75,4 @@ int main(int argc, char** argv) {
 
   return 0;
 }
+

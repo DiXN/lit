@@ -3,18 +3,15 @@
 #include "arg.h"
 #include "repository.hpp"
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 #include <tuple>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Log : public Arg {
   public:
-  Log() {}
+  Log() = default;
   bool invoke(const optional<string> arg) const override {
     if (arg) {
       cerr << "On command 'lit Log' no argument is allowed" << endl;
@@ -88,7 +85,7 @@ class Log : public Arg {
         array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
         auto& branch_commit = branch_tokens[0];
 
-        size_t index = std::stoi(branch_commit.erase(0, 1));
+        size_t index = stoi(branch_commit.erase(0, 1));
         commit_indices.push_back(index);
 
         if (index >= c_offset) {
@@ -128,7 +125,7 @@ class Log : public Arg {
       }
 
       for (size_t i = 0; i < reverse_lines.size(); i++) {
-        if (std::find(commit_indices.begin(), commit_indices.end(), i) == commit_indices.end() && i <= last_index &&
+        if (find(commit_indices.begin(), commit_indices.end(), i) == commit_indices.end() && i <= last_index &&
             i >= c_offset) {
           if (art[i][art[i].size() - 1] == '-') {
             art[i] += "|";
@@ -172,7 +169,7 @@ class Log : public Arg {
       getline(checked_out_commit, line);
       array<string, 4> branch_tokens = repo.extract_commit_information(line, '|');
       auto& branch_commit = branch_tokens[0];
-      size_t checked_out_index = std::stoi(branch_commit.erase(0, 1));
+      size_t checked_out_index = stoi(branch_commit.erase(0, 1));
 
       if (commit_offset != checked_out_index)
         cout << art[commit_offset] << "\t"

@@ -7,14 +7,9 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <optional>
-#include <sstream>
-#include <string>
-#include <tuple>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Repository : public Singleton<Repository> {
@@ -213,7 +208,7 @@ class Repository : public Singleton<Repository> {
       for (auto it_b = branch_b_lines.rbegin(); it_b != branch_b_lines.rend(); ++it_b) {
         if (*it_a && *it_b) {
           for (const auto& elem: **it_a) {
-            if (std::find((**it_b).cbegin(), (**it_b).cend(), elem) != (**it_b).cend())
+            if (find((**it_b).cbegin(), (**it_b).cend(), elem) != (**it_b).cend())
               return optional(elem);
           }
         }

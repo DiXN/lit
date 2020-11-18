@@ -5,15 +5,11 @@
 #include "repository.hpp"
 #include "revision.hpp"
 
-#include <ctime>
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 #include <tuple>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Merge : public Arg {
@@ -31,7 +27,7 @@ class Merge : public Arg {
   }
 
   public:
-  Merge() {}
+  Merge() = default;
   bool invoke(const optional<string> arg) const override {
     const auto& repo = Repository::instance();
 

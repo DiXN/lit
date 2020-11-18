@@ -5,18 +5,14 @@
 #include "revision.hpp"
 
 #include <filesystem>
-#include <iostream>
-#include <optional>
-#include <sstream>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Checkout : public Arg {
   public:
-  Checkout() {}
+  Checkout() = default;
   bool invoke(const optional<string> arg) const override {
     const auto& repo = Repository::instance();
 
@@ -49,3 +45,4 @@ class Checkout : public Arg {
 };
 
 }; // namespace lit
+

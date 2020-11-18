@@ -5,17 +5,14 @@
 #include "repository.hpp"
 
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Status : public Arg {
   public:
-  Status() {}
+  Status() = default;
   bool invoke(const optional<string> arg) const override {
     if (arg) {
       cerr << "On command 'lit status' no argument is allowed." << endl;
@@ -49,3 +46,4 @@ class Status : public Arg {
 };
 
 }; // namespace lit
+

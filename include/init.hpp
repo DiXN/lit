@@ -3,17 +3,14 @@
 #include "arg.h"
 #include "repository.hpp"
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Init : public Arg {
   public:
-  Init() {}
+  Init() = default;
   bool invoke(const optional<string> arg) const override {
     if (arg) {
       cerr << "On command 'lit Init' no argument is allowed" << endl;

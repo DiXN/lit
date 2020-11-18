@@ -2,18 +2,16 @@
 
 #include "arg.h"
 #include "repository.hpp"
+
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Show : public Arg {
   public:
-  Show() {}
+  Show() = default;
   bool invoke(const optional<string> arg) const override {
     const auto& repo = Repository::instance();
     if (!arg) {
@@ -67,4 +65,6 @@ class Show : public Arg {
     return os;
   }
 };
+
 }; // namespace lit
+

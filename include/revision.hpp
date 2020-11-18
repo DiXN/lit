@@ -5,12 +5,8 @@
 
 #include <ctime>
 #include <filesystem>
-#include <iostream>
-#include <sstream>
 
 namespace lit {
-
-using namespace std;
 
 class Revision {
   private:
@@ -216,3 +212,4 @@ class Revision {
 };
 
 }; // namespace lit
+

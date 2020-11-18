@@ -9,7 +9,6 @@
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Diff {

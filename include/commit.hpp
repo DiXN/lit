@@ -7,18 +7,14 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
-#include <optional>
-#include <sstream>
 
 namespace lit {
 
-using namespace std;
 namespace fs = std::filesystem;
 
 class Commit : public Arg {
   public:
-  Commit() {}
+  Commit() = default;
   bool invoke(const optional<string> message) const override {
     const auto& repo = Repository::instance();
 
