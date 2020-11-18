@@ -110,24 +110,6 @@ class Repository: public Singleton<Repository> {
     }
   }
 
-  int unique_commit_id() const {
-    const auto& last_commit = last_commit_of_branch(".total");
-
-    if (!last_commit) {
-      return 0;
-    }
-
-    const auto& [last_commit_nr, date, message, parents] = *last_commit;
-
-    stringstream prev_revision(last_commit_nr);
-    char prev_rev;
-    int prev_rev_number;
-    prev_revision >> prev_rev;
-    prev_revision >> prev_rev_number;
-
-    return ++prev_rev_number;
-  }
-
   bool is_head(const string& last_commit_nr) const {
     const auto& last_commit = last_commit_of_branch(current_branch());
 

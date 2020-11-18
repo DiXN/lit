@@ -86,7 +86,7 @@ class Revision {
       _revision = oss.str();
     } else {
       stringstream oss;
-      oss << "r" << repo.unique_commit_id();
+      oss << "r" << unique_commit_id();
       _revision = oss.str();
     }
 
@@ -152,8 +152,6 @@ class Revision {
       if(p.path().filename() == ".last" || p.path().filename() == ".total") {
         continue;
       }
-
-      cout << "looking for commit in " << p.path().filename() << endl;
 
       ifstream branch_file;
 
