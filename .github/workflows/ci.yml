@@ -13,10 +13,7 @@ jobs:
         uses: DoozyX/clang-format-lint-action@v0.10
 
   build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
