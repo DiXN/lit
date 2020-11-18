@@ -198,7 +198,7 @@ class Revision {
 
             auto command = Command("patch")
                             .arg(string("-s"))
-                            .arg(string("-p") + to_string(patch_directory == "." ? path_level : path_level + 1))
+                            .arg(string("-p") + to_string(patch_directory != "." ? path_level : path_level + 1))
                             .arg(string("-d")).arg(patch_directory)
                             .arg(string("-i")).arg(patch_file);
             const auto& [output, status] = command.invoke();
