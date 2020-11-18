@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  - push
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run clang-format
+        uses: DoozyX/clang-format-lint-action@v0.10
+
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          brew install gcc@10
+          cmake CMakeLists.txt
+          make
+        env:
+          CC: gcc-10
+          CXX: g++-10
+
+      - name: Test
+        run: |
+          export PATH="${PWD}/bin:${PATH}"
+          bash -x lit-test
